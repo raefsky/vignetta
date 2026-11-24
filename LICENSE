@@ -1,0 +1,33 @@
+MIT License
+
+Copyright (c) 2026 Roberto Lanza
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+Nome e logo: la licenza qui sopra non concede l'uso del nome "Vignetta - Officina
+del Fumetto" né del logo (il balloon diviso in tre vignette, cartella icone/), che
+restano riservati all'autore. Le versioni modificate distribuite da altri devono
+usare un nome e un logo diversi. Citare il nome per indicare questa app è sempre
+consentito.
+
+I caratteri incorporati nell'app (cartella font/) non sono coperti da questa licenza:
+ciascuno ha la propria (SIL Open Font License 1.1 o Apache License 2.0), indicata
+nella sua cartella e in CREDITI.md.

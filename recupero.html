@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'">
+<title>Recupero dei fumetti · Vignetta</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: #ecebe6; color: #16181d; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  p { margin: 0 0 12px; }
+  .nota { color: #56595f; font-size: 14px; }
+  .scheda { background: #f8f7f3; border-radius: 10px; padding: 14px 16px; margin: 14px 0; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .scheda h2 { font-size: 17px; margin: 0 0 4px; }
+  .riga { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 8px 0; border-top: 1px solid #dedbd3; }
+  .riga:first-of-type { border-top: 0; }
+  .dati { flex: 1 1 320px; font-size: 14px; }
+  .dati strong { font-weight: 600; }
+  .vuoto { color: #8a5300; }
+  button { font: inherit; font-weight: 600; padding: 7px 14px; border-radius: 8px; border: 0; background: #1b47c2; color: #fff; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  img.anteprima { width: 56px; height: auto; background: #fff; box-shadow: 0 0 0 1px #cdc9c0; }
+  .errore { background: #fdecea; color: #8f1d1d; padding: 10px 14px; border-radius: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Recupero dei fumetti di Vignetta</h1>
+  <p>Questa pagina <strong>legge soltanto</strong> l'archivio che Vignetta tiene in questo browser: non cancella e non cambia niente.
+     Per ogni fumetto mostra lo stato attuale e le versioni salvate da sola (una ogni cinque minuti di lavoro, le ultime venti).
+     «Scarica» crea un file <code>.vgn</code> completo, con le foto, nella cartella Download: poi lo apri in Vignetta da <em>Progetti → Apri progetto</em>.</p>
+  <p class="nota">Va aperta nello stesso browser (Edge) dove usi Vignetta, con un doppio clic come l'app.</p>
+  <div id="esito"><p>Lettura dell'archivio…</p></div>
+</main>
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const esito = $('esito');
+  const FORMATO = 'vignetta-progetto';
+
+  function richiesta(r) { return new Promise((ok, ko) => { r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); }); }
+
+  // Si apre l'archivio solo se esiste già, e mai con una versione nuova: così non si crea né si modifica niente.
+  async function apriArchivio() {
+    if (indexedDB.databases) {
+      const elenco = await indexedDB.databases();
+      if (!elenco.some((d) => d.name === 'vignetta')) return null;
+    }
+    return new Promise((ok, ko) => {
+      const r = indexedDB.open('vignetta');
+      r.onupgradeneeded = () => { r.transaction.abort(); };
+      r.onsuccess = () => ok(r.result);
+      r.onerror = () => ok(null);
+    });
+  }
+  const tutti = (db, nome) => richiesta(db.transaction(nome, 'readonly').objectStore(nome).getAll());
+  const perProgetto = (db, nome, id) => {
+    if (!db.objectStoreNames.contains(nome)) return Promise.resolve([]);
+    return richiesta(db.transaction(nome, 'readonly').objectStore(nome).index('progetto').getAll(id));
+  };
+
+  function riassunto(progetto) {
+    const pagine = (progetto.pagine || []).length;
+    let vignette = 0, elementi = 0;
+    const foto = new Set();
+    const visita = (el) => { elementi++; if (el.tipo === 'immagine') foto.add(el.idArchivio); if (el.tipo === 'gruppo') (el.figli || []).forEach(visita); };
+    (progetto.pagine || []).forEach((p) => {
+      vignette += (p.vignette || []).length;
+      (p.vignette || []).forEach((v) => { if (v.immagine) foto.add(v.immagine.id); });
+      (p.elementi || []).forEach(visita);
+    });
+    return { pagine, vignette, elementi, foto };
+  }
+  const data = (s) => { try { return new Date(s).toLocaleString('it-IT', { dateStyle: 'medium', timeStyle: 'short' }); } catch (e) { return s; } };
+  const kb = (n) => (n / 1024).toLocaleString('it-IT', { maximumFractionDigits: 0 }) + ' KB';
+
+  // --- ZIP senza compressione, come i file .vgn ---
+  const tabella = new Uint32Array(256).map((_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+  const crc32 = (d) => { let c = 0xffffffff; for (let i = 0; i < d.length; i++) c = tabella[(c ^ d[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  function zip(voci) {
+    const enc = new TextEncoder(); const parti = []; const centrale = []; let pos = 0;
+    const ora = new Date(); const tempo = (ora.getHours() << 11) | (ora.getMinutes() << 5) | (ora.getSeconds() >> 1);
+    const giorno = ((ora.getFullYear() - 1980) << 9) | ((ora.getMonth() + 1) << 5) | ora.getDate();
+    for (const v of voci) {
+      const nome = enc.encode(v.nome); const crc = crc32(v.dati); const n = v.dati.length;
+      const loc = new DataView(new ArrayBuffer(30));
+      loc.setUint32(0, 0x04034b50, true); loc.setUint16(4, 20, true); loc.setUint16(6, 0x0800, true); loc.setUint16(8, 0, true);
+      loc.setUint16(10, tempo, true); loc.setUint16(12, giorno, true); loc.setUint32(14, crc, true); loc.setUint32(18, n, true); loc.setUint32(22, n, true);
+      loc.setUint16(26, nome.length, true); loc.setUint16(28, 0, true);
+      parti.push(new Uint8Array(loc.buffer), nome, v.dati);
+      const cen = new DataView(new ArrayBuffer(46));
+      cen.setUint32(0, 0x02014b50, true); cen.setUint16(4, 20, true); cen.setUint16(6, 20, true); cen.setUint16(8, 0x0800, true); cen.setUint16(10, 0, true);
+      cen.setUint16(12, tempo, true); cen.setUint16(14, giorno, true); cen.setUint32(16, crc, true); cen.setUint32(20, n, true); cen.setUint32(24, n, true);
+      cen.setUint16(28, nome.length, true); cen.setUint32(42, pos, true);
+      centrale.push(new Uint8Array(cen.buffer), nome);
+      pos += 30 + nome.length + n;
+    }
+    const dimCentrale = centrale.reduce((t, p) => t + p.length, 0);
+    const fine = new DataView(new ArrayBuffer(22));
+    fine.setUint32(0, 0x06054b50, true); fine.setUint16(8, voci.length, true); fine.setUint16(10, voci.length, true);
+    fine.setUint32(12, dimCentrale, true); fine.setUint32(16, pos, true);
+    return new Blob([...parti, ...centrale, new Uint8Array(fine.buffer)], { type: 'application/x-vignetta' });
+  }
+
+  async function creaFile(db, rec, json, etichetta) {
+    const progetto = JSON.parse(json);
+    const { foto } = riassunto(progetto);
+    const immaginiDb = await perProgetto(db, 'immagini', rec.id);
+    const voci = [], immagini = [], mancanti = [];
+    for (const id of foto) {
+      const im = immaginiDb.find((x) => x.id === id);
+      let dati = null, tipo = im && im.tipo;
+      if (im) {
+        try { dati = new Uint8Array(await im.originale.arrayBuffer()); } catch (e) { dati = null; }
+        if (!dati && im.anteprima) { try { dati = new Uint8Array(await im.anteprima.arrayBuffer()); tipo = im.anteprima.type || 'image/jpeg'; } catch (e) { dati = null; } }
+      }
+      if (!dati) { mancanti.push(id); continue; }
+      const est = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' })[tipo] || 'bin';
+      const file = `immagini/${id}.${est}`;
+      voci.push({ nome: file, dati });
+      immagini.push({ id, nome: im.nome, tipo, larghezza: im.larghezza, altezza: im.altezza, file });
+    }
+    const font = [];
+    for (const f of await perProgetto(db, 'fontProgetto', rec.id)) {
+      try { const dati = new Uint8Array(await f.dati.arrayBuffer()); const file = `font/${f.id}.ttf`; voci.push({ nome: file, dati }); font.push({ id: f.id, nome: f.nome, famiglia: f.famiglia, tipo: f.tipo, file }); } catch (e) { /* font illeggibile */ }
+    }
+    const contenuto = { formato: FORMATO, versioneFormato: progetto.versioneFormato || 1, app: 'recupero', salvato: new Date().toISOString(), progetto, immagini, font };
+    voci.unshift({ nome: 'progetto.json', dati: new TextEncoder().encode(JSON.stringify(contenuto)) });
+    const blob = zip(voci);
+    const nome = `${(rec.titolo || 'Fumetto').replace(/[\\/:*?"<>|]+/g, ' ').trim()} - recupero ${etichetta}.vgn`;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 20000);
+    return { nome, mancanti: mancanti.length };
+  }
+
+  function riga(db, rec, json, quando, etichetta, anteprimaBlob) {
+    const r = document.createElement('div'); r.className = 'riga';
+    let info;
+    try { info = riassunto(JSON.parse(json)); } catch (e) { info = null; }
+    if (anteprimaBlob) { const img = document.createElement('img'); img.className = 'anteprima'; img.alt = ''; img.src = URL.createObjectURL(anteprimaBlob); r.append(img); }
+    const d = document.createElement('div'); d.className = 'dati';
+    d.innerHTML = `<strong>${etichetta}</strong> · ${data(quando)}<br>` + (info
+      ? `${info.pagine} pagine, ${info.vignette} vignette, ${info.elementi} balloon ed elementi, ${info.foto.size} foto · ${kb(json.length)}`
+      : '<span class="vuoto">dati illeggibili</span>');
+    if (info && info.vignette === 0 && info.elementi === 0) d.innerHTML += ' <span class="vuoto">(vuoto)</span>';
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Scarica questa copia';
+    if (!info) b.disabled = true;
+    b.addEventListener('click', async () => {
+      b.disabled = true; b.textContent = 'Preparo il file…';
+      try {
+        const esito = await creaFile(db, rec, json, etichetta.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+        b.textContent = 'Scaricato nella cartella Download' + (esito.mancanti ? ` (${esito.mancanti} foto non più leggibili)` : '');
+      } catch (e) { b.textContent = 'Non riuscito: ' + e.message; b.disabled = false; }
+    });
+    r.append(d, b);
+    return r;
+  }
+
+  (async () => {
+    try {
+      const db = await apriArchivio();
+      if (!db || !db.objectStoreNames.contains('progetti')) {
+        esito.innerHTML = '<p class="errore">In questo browser non c\'è un archivio di Vignetta. Apri questa pagina nello stesso browser (e con lo stesso profilo) dove usi l\'app, aprendola con un doppio clic come fai con Vignetta.</p>';
+        return;
+      }
+      const progetti = (await tutti(db, 'progetti')).sort((a, b) => (b.modificato || '').localeCompare(a.modificato || ''));
+      esito.replaceChildren();
+      const intro = document.createElement('p');
+      intro.textContent = `Fumetti trovati: ${progetti.length}. Il primo è il più recente.`;
+      esito.append(intro);
+      for (const rec of progetti) {
+        const s = document.createElement('section'); s.className = 'scheda';
+        const h = document.createElement('h2'); h.textContent = rec.titolo || 'Senza titolo'; s.append(h);
+        if (rec.file && rec.file.nome) { const p = document.createElement('p'); p.className = 'nota'; p.textContent = `Ultimo file: ${rec.file.nome}`; s.append(p); }
+        s.append(riga(db, rec, rec.json || '{}', rec.modificato, 'Stato attuale', rec.anteprima));
+        const versioni = (await perProgetto(db, 'versioni', rec.id)).sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+        versioni.forEach((v, i) => s.append(riga(db, rec, v.json || '{}', v.data, `Versione ${versioni.length - i}`)));
+        if (!versioni.length) { const p = document.createElement('p'); p.className = 'nota'; p.textContent = 'Nessuna versione salvata per questo fumetto.'; s.append(p); }
+        esito.append(s);
+      }
+    } catch (e) {
+      esito.innerHTML = `<p class="errore">Non riesco a leggere l'archivio: ${e.message}</p>`;
+    }
+  })();
+})();
+</script>
+</body>
+</html>
