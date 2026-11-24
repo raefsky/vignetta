@@ -29,9 +29,11 @@
 <main>
   <h1>Recupero dei fumetti di Vignetta</h1>
   <p>Questa pagina <strong>legge soltanto</strong> l'archivio che Vignetta tiene in questo browser: non cancella e non cambia niente.
-     Per ogni fumetto mostra lo stato attuale e le versioni salvate da sola (una ogni cinque minuti di lavoro, le ultime venti).
-     «Scarica» crea un file <code>.vgn</code> completo, con le foto, nella cartella Download: poi lo apri in Vignetta da <em>Progetti → Apri progetto</em>.</p>
-  <p class="nota">Va aperta nello stesso browser (Edge) dove usi Vignetta, con un doppio clic come l'app.</p>
+     Per ogni fumetto mostra lo stato attuale e le versioni che l'app salva da sola: le venti più recenti, una ogni cinque minuti di lavoro,
+     poi una all'ora per l'ultimo giorno e una al giorno per l'ultima settimana.
+     «Scarica» crea un file <code>.vgn</code> completo, con le foto, nella cartella Download: poi lo apri in Vignetta con il pulsante <em>Apri</em>.</p>
+  <p class="nota">Va aperta nello stesso browser dove usi Vignetta. Se usi l'app scaricata, aprila con un doppio clic dalla stessa cartella;
+     se usi quella online, aprila dallo stesso sito, all'indirizzo che finisce con <code>recupero.html</code>.</p>
   <div id="esito"><p>Lettura dell'archivio…</p></div>
 </main>
 <script>
@@ -163,7 +165,7 @@
     try {
       const db = await apriArchivio();
       if (!db || !db.objectStoreNames.contains('progetti')) {
-        esito.innerHTML = '<p class="errore">In questo browser non c\'è un archivio di Vignetta. Apri questa pagina nello stesso browser (e con lo stesso profilo) dove usi l\'app, aprendola con un doppio clic come fai con Vignetta.</p>';
+        esito.innerHTML = '<p class="errore">In questo browser non c\'è un archivio di Vignetta. Apri questa pagina nello stesso browser (e con lo stesso profilo) dove usi l\'app: con un doppio clic se usi l\'app scaricata, dallo stesso sito se usi quella online.</p>';
         return;
       }
       const progetti = (await tutti(db, 'progetti')).sort((a, b) => (b.modificato || '').localeCompare(a.modificato || ''));
