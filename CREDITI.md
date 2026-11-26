@@ -1,5 +1,7 @@
 # Crediti
 
+Vignetta è distribuita con la licenza PolyForm Noncommercial 1.0.0 (vedi `LICENSE`); i caratteri di altri autori restano sotto le loro licenze.
+
 Vignetta usa solo contenuti con licenza libera. Tutto il resto (codice, logo, icone, balloon, retini,
 forme, scene e disegni della Guida, anteprime) è scritto e disegnato da zero per questo progetto.
 

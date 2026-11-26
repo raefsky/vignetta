@@ -36,8 +36,18 @@ cambiare niente e ti fa scaricare una copia di ogni fumetto e delle sue versioni
 
 ## Licenza
 
-Il codice e i disegni di Vignetta sono distribuiti con la licenza MIT (vedi `LICENSE`). Il nome
-«Vignetta - Officina del Fumetto» e il logo sono riservati all'autore.
+Il codice e i disegni di Vignetta sono distribuiti con la licenza **PolyForm Noncommercial 1.0.0**
+(vedi `LICENSE`).
+
+**Si possono usare gratis** per scopi non commerciali: uso personale, studio, hobby, scuole e altri
+istituti educativi, enti di beneficenza, ricerca e pubblica amministrazione. Si può anche copiare,
+modificare e condividere, conservando la licenza e l'avviso di copyright.
+
+**Serve un accordo con l'autore** per usi commerciali, per esempio vendere Vignetta o includerla in
+un prodotto o in un corso a pagamento. Per chiederlo, apri una segnalazione (*Issue*) in questo
+repository.
+
+Il nome «Vignetta - Officina del Fumetto» e il logo sono riservati all'autore.
 
 I caratteri incorporati sono di altri autori, con licenze libere: sono elencati in `CREDITI.md` e i
 testi delle loro licenze sono nella cartella `licenze-caratteri`.
