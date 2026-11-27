@@ -69,7 +69,10 @@
     let vignette = 0, elementi = 0;
     const foto = new Set();
     const visita = (el) => { elementi++; if (el.tipo === 'immagine') foto.add(el.idArchivio); if (el.tipo === 'gruppo') (el.figli || []).forEach(visita); };
+    // Anche le immagini di sfondo delle pagine (e quella proposta per le pagine nuove) sono foto del fumetto.
+    if (progetto.pagina && progetto.pagina.sfondoImmagine) foto.add(progetto.pagina.sfondoImmagine.id);
     (progetto.pagine || []).forEach((p) => {
+      if (p.sfondoImmagine) foto.add(p.sfondoImmagine.id);
       vignette += (p.vignette || []).length;
       (p.vignette || []).forEach((v) => { if (v.immagine) foto.add(v.immagine.id); });
       (p.elementi || []).forEach(visita);
@@ -127,7 +130,7 @@
     }
     const font = [];
     for (const f of await perProgetto(db, 'fontProgetto', rec.id)) {
-      try { const dati = new Uint8Array(await f.dati.arrayBuffer()); const file = `font/${f.id}.ttf`; voci.push({ nome: file, dati }); font.push({ id: f.id, nome: f.nome, famiglia: f.famiglia, tipo: f.tipo, file }); } catch (e) { /* font illeggibile */ }
+      try { const dati = new Uint8Array(await f.dati.arrayBuffer()); const est = ((/\.(ttf|otf|woff2?)$/i.exec((f.dati && f.dati.name) || '') || [])[1] || ({ 'font/woff2': 'woff2', 'font/woff': 'woff', 'font/otf': 'otf' })[f.tipo] || 'ttf').toLowerCase(); const file = `font/${f.id}.${est}`; voci.push({ nome: file, dati }); font.push({ id: f.id, nome: f.nome, famiglia: f.famiglia, tipo: f.tipo, file }); } catch (e) { /* font illeggibile */ }
     }
     const contenuto = { formato: FORMATO, versioneFormato: progetto.versioneFormato || 1, app: 'recupero', salvato: new Date().toISOString(), progetto, immagini, font };
     voci.unshift({ nome: 'progetto.json', dati: new TextEncoder().encode(JSON.stringify(contenuto)) });

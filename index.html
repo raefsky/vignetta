@@ -1332,7 +1332,7 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
         <div class="schede" id="schede-sinistra" role="tablist">
           <button type="button" role="tab" id="scheda-modelli" aria-controls="sezione-modelli" data-testo="modelli.titolo"></button>
           <button type="button" role="tab" id="scheda-libreria" aria-controls="sezione-libreria" data-testo="libreria.titolo"></button>
-          <button type="button" role="tab" id="scheda-catalogo" aria-controls="sezione-catalogo" data-testo="catalogo.titolo"></button>
+          <button type="button" role="tab" id="scheda-catalogo" aria-controls="sezione-catalogo" data-testo="catalogo.scheda"></button>
         </div>
         <section id="sezione-modelli" role="tabpanel" aria-labelledby="scheda-modelli">
           <p class="aiuto" data-testo="modelli.aiuto"></p>
@@ -1498,7 +1498,7 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
   'use strict';
   const V = (window.Vignetta = window.Vignetta || {});
 
-  V.versione = '1.1.1';
+  V.versione = '1.1.2';
   V.dati = V.dati || {};
   V.lingua = 'it';
 
@@ -1996,7 +1996,9 @@ Vignetta.dati.testi.it = {
     piuGrande: 'Testo più grande',
   },
   catalogo: {
-    titolo: 'Balloon',
+    // Il nome della scheda ha una chiave sua: «titolo» è la voce Titolo del catalogo (nella 1.1 e nella
+    // 1.1.1 la scheda si chiamava per errore «Titolo», perché le due chiavi coincidevano).
+    scheda: 'Balloon',
     aiuto: 'Tocca per aggiungere nella vignetta selezionata, o trascina sulla pagina.',
     titoloBalloon: 'Balloon',
     titoloEffetti: 'Effetti sonori',
