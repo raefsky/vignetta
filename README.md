@@ -8,7 +8,11 @@ didascalie, effetti sonori e titoli. Accanto alla tavola si può scrivere il cop
 esporta in PDF, CBZ o immagini.
 
 È un unico file HTML: non si installa niente, funziona anche senza internet e i caratteri sono già
-dentro.
+dentro. Funziona sul computer e, con le dita, su iPad e tablet.
+
+Dalla versione 2.0 si può scegliere fra due modalità: **Semplice**, con pochi comandi per cominciare
+(formato, modello, foto, balloon, PDF), e **Completa**, con tutti gli strumenti. Il fumetto è lo
+stesso nelle due modalità.
 
 ## Come si usa
 
@@ -18,8 +22,11 @@ dentro.
 scompattalo e apri `vignetta.html` con un doppio clic. Dentro trovi anche le cartelle Fumetti, Copie
 di sicurezza, Esportazioni, Immagini e Note, e un LEGGIMI che spiega come usarle.
 
-Vignetta funziona al meglio in Microsoft Edge e in Google Chrome, che le permettono di salvare
-direttamente nei file e nelle cartelle. Negli altri browser funziona lo stesso, ma i file si
+**Su iPad e tablet:** apri la versione online. Con **Salva una copia** il fumetto si conserva da
+dove vuoi, per esempio in File o in Drive.
+
+Sul computer Vignetta funziona al meglio in Microsoft Edge e in Google Chrome, che le permettono di
+salvare direttamente nei file e nelle cartelle. Negli altri browser funziona lo stesso, ma i file si
 scaricano nella cartella Download.
 
 ## I tuoi fumetti restano tuoi
@@ -31,8 +38,12 @@ mentre la usi. Il fumetto si salva da solo nel browser del tuo computer e, con *
 La versione online e quella scaricata tengono i fumetti in due archivi separati del browser: un
 fumetto iniziato in una si apre nell'altra solo passando dal file `.vgn`.
 
-Se un fumetto sembra sparito, apri `recupero.html` nello stesso browser: legge l'archivio senza
-cambiare niente e ti fa scaricare una copia di ogni fumetto e delle sue versioni precedenti.
+In alto, accanto al titolo, si legge sempre dove si trova il lavoro: solo nel browser, salvato nel
+file o in una copia di sicurezza. Un clic spiega cosa conviene fare.
+
+Se un fumetto sembra sparito, dentro l'app c'è **Ho perso un fumetto**. Se l'app non si apre più,
+apri `recupero.html` nello stesso browser: legge l'archivio senza cambiare niente e ti fa scaricare
+una copia di ogni fumetto e delle sue versioni precedenti.
 
 ## Licenza
 

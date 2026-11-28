@@ -464,13 +464,30 @@ h1, h2, h3, p { margin: 0; }
   min-height: 32px; padding: 0 6px; border: var(--linea) solid var(--accento); border-radius: var(--raggio);
   background: var(--superficie); font-weight: 600; width: 260px; max-width: 100%;
 }
-.stato-salvataggio { font-size: 12.5px; color: var(--testo-tenue); white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
-/* Salvato: un pallino verde con la spunta. */
-.stato-salvataggio:not(.problema):not(:empty)::before {
+.stato-salvataggio {
+  font: inherit; font-size: 12.5px; color: var(--testo-tenue); white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
+  min-height: 28px; padding: 0 6px; border: var(--linea) solid transparent; border-radius: var(--raggio); background: none; cursor: pointer;
+}
+.stato-salvataggio:hover { border-color: var(--bordo); }
+.stato-salvataggio:focus-visible { outline: 2px solid var(--accento); outline-offset: 1px; }
+.stato-breve { display: none; }
+/* Al sicuro (nel file o in una copia aggiornata): un pallino verde con la spunta. */
+.stato-salvataggio.al-sicuro::before {
   content: ""; width: 14px; height: 14px; border-radius: 50%; flex: none;
   background: var(--conferma) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3.5 7.2 6 9.6 10.6 4.6' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px no-repeat;
 }
 .stato-salvataggio.problema { color: var(--pericolo); }
+/* Solo nel browser: un pallino arancio, lo stesso colore del promemoria. */
+.stato-salvataggio.solo-browser { color: var(--avviso-testo); }
+.stato-salvataggio.solo-browser::before, .stato-salvataggio.problema::before {
+  content: ""; width: 10px; height: 10px; margin: 2px; border-radius: 50%; flex: none; background: var(--avviso-bordo);
+}
+.stato-salvataggio.problema::before { background: var(--pericolo); }
+#spazio-progetti.problema { color: var(--avviso-testo); }
+.recupero-fumetto { display: grid; gap: 6px; padding: 10px 0; border-top: var(--linea) solid var(--bordo); }
+.recupero-testa { display: flex; align-items: center; gap: 12px; }
+.recupero-testa .gruppo-titolo { margin: 0; }
+.recupero-anteprima { width: 44px; aspect-ratio: 210 / 297; object-fit: contain; background: #fff; box-shadow: 0 0 0 1px var(--bordo); flex: none; }
 .promemoria { border-color: var(--avviso-bordo); color: var(--avviso-testo); background: var(--avviso-sfondo); }
 
 /* I miei fumetti */
@@ -499,7 +516,9 @@ h1, h2, h3, p { margin: 0; }
 /* L'avviso «Mai salvato su file» tiene il suo riquadro arancio in chiaro e in scuro, su una riga sola. */
 .barra .btn.promemoria:not(.btn-icona) { border-color: var(--avviso-bordo); background: var(--avviso-sfondo); color: var(--avviso-testo); white-space: nowrap; }
 /* Quando c'è l'avviso, la spunta verde di «Salvato» si toglie: i due segnali insieme sembrerebbero contraddirsi. */
-.barra:has(#btn-promemoria:not([hidden])) .stato-salvataggio { display: none; }
+/* Con l'avviso resta solo la parola breve dello stato: i due segnali dicono la stessa cosa. */
+.barra:has(#btn-promemoria:not([hidden])) .stato-lungo { display: none; }
+.barra:has(#btn-promemoria:not([hidden])) .stato-breve { display: inline; }
 /* Con l'avviso la barra è più piena: Annulla e Ripeti restano frecce, così il titolo del fumetto si legge. */
 @media (max-width: 1599px) {
   .barra:has(#btn-promemoria:not([hidden])) #btn-annulla .etichetta-testo,
@@ -986,7 +1005,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.35); }
   #btn-salva .etichetta-testo, #btn-apri .etichetta-testo, #btn-progetti .etichetta-testo { display: none; }
   .barra .marchio-nome { display: none; } /* resta il logo, il titolo del fumetto ha più spazio */
   .titolo-barra { min-width: 112px; }
-  .stato-salvataggio { display: none; }
+  .stato-lungo { display: none; }
+  .stato-breve { display: inline; }
   .titolo-progetto { max-width: 160px; }
 }
 @media (max-width: 420px) {
@@ -1289,41 +1309,139 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
 #pr-riemp-regolazioni[hidden] { display: none; }
 #ef-sfumatura-campo[hidden] { display: none; }
 
+
+/* --- Modo tocco (2.0): tablet e dita. Tutto dipende dalla classe «modo-tocco» sulla pagina (tocco.js),
+   così con il mouse l'app resta com'era. Comandi e zone da trascinare di almeno 44 pixel. --- */
+.solo-tocco, .dove-aggiungo, .maniglia-foglio, .fatto-tastiera { display: none; }
+.presa-invisibile { fill: transparent; cursor: move; }
+.modo-tocco { --altezza-barra: 64px; }
+/* Il browser non ingrandisce e non scorre la pagina da solo: i gesti con le dita li gestisce la tavola. */
+html.modo-tocco, html.modo-tocco body { touch-action: pan-x pan-y; }
+.modo-tocco .tavolo, .modo-tocco #tavola { touch-action: none; }
+.modo-tocco .solo-tocco { display: inline-flex; }
+.modo-tocco .btn, .modo-tocco .segmentato button, .modo-tocco select, .modo-tocco input[type="text"] { min-height: 44px; }
+.modo-tocco .btn-icona, .modo-tocco .btn-icona-bordo { min-width: 44px; min-height: 44px; }
+.modo-tocco .barra { gap: 4px; }
+.modo-tocco .barra .btn { min-width: 44px; height: 48px; }
+.modo-tocco .barra-gruppo { gap: 6px; }
+.modo-tocco .stato-salvataggio { min-height: 44px; }
+/* Annulla e Ripeti sempre con la loro parola, anche sugli schermi stretti. */
+.modo-tocco .barra #btn-annulla .etichetta-testo, .modo-tocco .barra #btn-ripeti .etichetta-testo { display: inline !important; }
+.modo-tocco .barra #btn-annulla, .modo-tocco .barra #btn-ripeti { width: auto !important; padding: 0 12px !important; }
+.modo-tocco .schede [role="tab"] { min-height: 44px; }
+.modo-tocco .fila-pulsanti { gap: 10px; }
+.modo-tocco .campione-colore { min-width: 40px; min-height: 40px; }
+.modo-tocco .colori-fila.togli .campione-colore:not(.campione-aggiungi) { outline: 2px dashed var(--pericolo); outline-offset: 2px; }
+.modo-tocco .dove-aggiungo { display: block; margin: 0 0 10px; font-size: 13px; line-height: 1.4; color: var(--testo-tenue); }
+.modo-tocco .dove-aggiungo.in-vignetta { color: var(--accento-scritto); font-weight: 600; }
+.modo-tocco .barra-contestuale .btn { min-width: 44px; min-height: 44px; }
+/* «Fatto» grande, appena sopra la tastiera, mentre si scrive in un balloon. */
+.modo-tocco .fatto-tastiera:not([hidden]) {
+  display: inline-flex; position: fixed; right: 12px; z-index: 45; height: 48px; padding: 0 20px; font-size: 16px;
+  box-shadow: var(--ombra-pannello);
+}
+@media (max-width: 899px) {
+  /* Le proprietà salgono dal basso, con una maniglia per allungarle; la scheda di sinistra resta un cassetto laterale. */
+  .modo-tocco .pannello-dx {
+    top: auto; left: 0; right: 0; bottom: 0; width: auto; height: var(--altezza-foglio, 50vh);
+    transform: translateY(105%); border-left: 0; border-top: var(--separatore-pannelli); border-radius: 14px 14px 0 0;
+  }
+  .modo-tocco .app.cassetto-dx .pannello-dx { transform: none; }
+  .modo-tocco .pannello-dx .pannello-interno { width: auto; }
+  .modo-tocco .maniglia-foglio {
+    display: flex; justify-content: center; align-items: center; position: sticky; top: 0; z-index: 2;
+    width: 100%; height: 44px; border: 0; background: var(--superficie); cursor: ns-resize; touch-action: none;
+  }
+  .maniglia-foglio-segno { width: 48px; height: 5px; border-radius: 3px; background: var(--bordo-controllo); }
+  .modo-tocco .barra .marchio { display: none; }
+}
+/* Tablet in orizzontale (fino a 1439 px): nella barra restano le parole Annulla, Ripeti ed Esporta;
+   gli altri pulsanti tengono l'icona (la parola si legge con la pressione lunga), così il titolo ha spazio. */
+.modo-tocco .titolo-barra { min-width: 120px; }
+@media (max-width: 1439px) {
+  .modo-tocco .barra .marchio-nome { display: none; }
+  .modo-tocco #btn-copione .etichetta-testo, .modo-tocco #btn-salva .etichetta-testo, .modo-tocco #btn-apri .etichetta-testo,
+  .modo-tocco #btn-progetti .etichetta-testo, .modo-tocco #btn-impostazioni .etichetta-testo { display: none; }
+  .modo-tocco .barra #btn-copione, .modo-tocco .barra #btn-salva, .modo-tocco .barra #btn-apri,
+  .modo-tocco .barra #btn-progetti, .modo-tocco .barra #btn-impostazioni { padding: 0 10px; justify-content: center; }
+}
+
+/* --- Modalità Semplice (2.0): si vede solo ciò che è elencato in dati/modo-semplice.js ---
+   Un comando con un nome (data-comando) senza il segno «data-in-semplice» si nasconde; nelle proprietà
+   si nascondono anche i gruppi senza nome. In Completa niente cambia. */
+html.modo-semplice [data-comando]:not([data-in-semplice]),
+html.modo-semplice #proprieta .gruppo:not([data-in-semplice]) { display: none !important; }
+html:not(.modo-semplice) .solo-semplice { display: none !important; }
+.nota-semplice { display: grid; gap: 8px; margin-bottom: 14px; padding: 10px 12px; border-left: 3px solid var(--accento); background: var(--accento-tenue); font-size: 13px; }
+.nota-semplice[hidden] { display: none; }
+.mostra-tutto { margin-top: 12px; }
+.menu-aiuto .menu-barra-voci { right: 0; left: auto; }
+/* Esporta in Semplice: solo «Crea il PDF», con «Altre opzioni» per la finestra completa. */
+.dialogo-esporta.esporta-semplice .campo, .dialogo-esporta.esporta-semplice fieldset,
+.dialogo-esporta.esporta-semplice .esp-riepilogo { display: none; }
+.dialogo-esporta:not(.esporta-semplice) .solo-esporta-semplice { display: none; }
+.esp-semplice-testo { margin: 0; }
+/* Schermata iniziale: la domanda gentile della prima volta e i passi di «Crea in 3 passi». */
+.scelta-modalita { display: grid; gap: 12px; padding: 16px; border: var(--bordo-scheda); border-color: var(--accento); border-radius: var(--raggio-scheda); background: var(--accento-tenue); }
+.scelta-modalita h2 { margin: 0; font-family: var(--font-titoli); font-size: 20px; }
+.scelta-modalita .fila-pulsanti .btn { min-height: 44px; }
+.scelta-modalita-voce { display: grid; gap: 2px; text-align: left; padding: 10px 14px; height: auto; }
+.scelta-modalita-voce small { font-weight: 400; color: var(--testo-tenue); font-size: 13px; }
+.scelta-modalita-voce.btn-principale small { color: inherit; opacity: .9; }
+.iniziale-modalita { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.passi-titolo { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.passi-contatore { font-size: 12.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--accento-scritto); font-weight: 600; }
+.passo-foto { display: grid; gap: 12px; max-width: 560px; }
+.passo-foto-scelte { font-size: 14px; color: var(--testo-tenue); }
+.schermata-iniziale.in-passi .iniziale-normale, .schermata-iniziale.in-passi .iniziale-modalita { display: none !important; }
+.iniziale-passi { display: grid; gap: 18px; }
+.iniziale-passi[hidden] { display: none; }
+
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <header class="barra">
-    <button type="button" class="btn btn-icona" id="btn-pannello-sx" data-icona="pannello-sx" data-etichetta="comandi.pannelloSx" aria-controls="pannello-sx"></button>
+    <button type="button" class="btn btn-icona" id="btn-pannello-sx" data-comando="pannelli" data-icona="pannello-sx" data-etichetta="comandi.pannelloSx" aria-controls="pannello-sx"></button>
     <div class="marchio">
       <span class="marchio-nome" data-testo="app.nome"></span>
       <span class="marchio-sotto" data-testo="app.sottotitolo"></span>
     </div>
     <div class="barra-gruppo">
-      <button type="button" class="btn" id="btn-annulla" data-icona="annulla" data-etichetta="comandi.annulla"><span class="etichetta-testo" data-testo="comandi.annulla"></span></button>
-      <button type="button" class="btn" id="btn-ripeti" data-icona="ripeti" data-etichetta="comandi.ripeti"><span class="etichetta-testo" data-testo="comandi.ripeti"></span></button>
+      <button type="button" class="btn" id="btn-annulla" data-comando="annulla" data-icona="annulla" data-etichetta="comandi.annulla"><span class="etichetta-testo" data-testo="comandi.annulla"></span></button>
+      <button type="button" class="btn" id="btn-ripeti" data-comando="ripeti" data-icona="ripeti" data-etichetta="comandi.ripeti"><span class="etichetta-testo" data-testo="comandi.ripeti"></span></button>
     </div>
     <div class="titolo-barra">
       <button type="button" class="titolo-progetto" id="titolo-progetto" data-etichetta="progetti.rinominaTitolo"></button>
-      <span class="stato-salvataggio" id="stato-salvataggio" role="status"></span>
+      <button type="button" class="stato-salvataggio" id="stato-salvataggio" data-comando="stato-salvataggio" aria-live="polite"><span class="stato-lungo"></span><span class="stato-breve"></span></button>
     </div>
     <div class="barra-spazio"></div>
-    <button type="button" class="btn promemoria" id="btn-promemoria" data-icona="avviso" hidden><span></span></button>
-    <button type="button" class="btn" id="btn-copione" data-icona="copione" data-etichetta="copione.aiutoPulsante" aria-pressed="false" aria-controls="copione"><span class="etichetta-testo" data-testo="copione.titolo"></span></button>
-    <button type="button" class="btn" id="btn-esporta" data-icona="esporta" data-etichetta="esporta.aiutoPulsante" aria-haspopup="dialog"><span class="etichetta-testo" data-testo="esporta.esporta"></span></button>
-    <button type="button" class="btn" id="btn-apri" data-icona="cartella" data-etichetta="progetti.apriAiuto"><span class="etichetta-testo" data-testo="progetti.apri"></span></button>
+    <button type="button" class="btn promemoria" id="btn-promemoria" data-comando="promemoria" data-icona="avviso" hidden><span></span></button>
+    <button type="button" class="btn" id="btn-copione" data-comando="copione" data-icona="copione" data-etichetta="copione.aiutoPulsante" aria-pressed="false" aria-controls="copione"><span class="etichetta-testo" data-testo="copione.titolo"></span></button>
+    <button type="button" class="btn" id="btn-esporta" data-comando="esporta" data-icona="esporta" data-etichetta="esporta.aiutoPulsante" aria-haspopup="dialog"><span class="etichetta-testo" data-testo="esporta.esporta"></span></button>
+    <button type="button" class="btn" id="btn-apri" data-comando="apri" data-icona="cartella" data-etichetta="progetti.apriAiuto"><span class="etichetta-testo" data-testo="progetti.apri"></span></button>
     <div class="salva-coppia">
-      <button type="button" class="btn" id="btn-salva" data-icona="salva" data-etichetta="progetti.salvaAiuto"><span class="etichetta-testo" data-testo="progetti.salva"></span></button>
-      <details class="menu-barra" id="menu-salva">
+      <button type="button" class="btn" id="btn-salva" data-comando="salva" data-icona="salva" data-etichetta="progetti.salvaAiuto"><span class="etichetta-testo" data-testo="progetti.salva"></span></button>
+      <details class="menu-barra" id="menu-salva" data-comando="salva-menu">
         <summary class="btn btn-icona btn-tendina" data-icona="apri" data-etichetta="progetti.altriSalva"></summary>
         <div class="menu-barra-voci">
           <button type="button" class="btn" id="btn-salva-nome" data-icona="salva"><span data-testo="progetti.salvaConNome"></span></button>
+          <button type="button" class="btn" id="btn-salva-copia" data-icona="esporta"><span data-testo="copie.salvaUnaCopia"></span></button>
         </div>
       </details>
     </div>
-    <button type="button" class="btn" id="btn-progetti" data-icona="fumetti" data-etichetta="progetti.mieiFumetti" aria-haspopup="dialog"><span class="etichetta-testo" data-testo="progetti.progetti"></span></button>
-    <button type="button" class="btn" id="btn-impostazioni" data-icona="impostazioni" data-etichetta="comandi.impostazioni" aria-haspopup="dialog"><span class="etichetta-testo" data-testo="comandi.impostazioni"></span></button>
-    <button type="button" class="btn btn-icona" id="btn-pannello-dx" data-icona="pannello-dx" data-etichetta="comandi.pannelloDx" aria-controls="pannello-dx"></button>
+    <button type="button" class="btn" id="btn-progetti" data-comando="progetti" data-icona="fumetti" data-etichetta="progetti.mieiFumetti" aria-haspopup="dialog"><span class="etichetta-testo" data-testo="progetti.progetti"></span></button>
+    <details class="menu-barra menu-aiuto solo-semplice" id="menu-aiuto" data-comando="aiuto">
+      <summary class="btn" data-icona="aiuto" data-etichetta="semplice.aiuto"><span class="etichetta-testo" data-testo="semplice.aiuto"></span></summary>
+      <div class="menu-barra-voci">
+        <button type="button" class="btn" id="aiuto-tour"><span data-testo="semplice.tourBreve"></span></button>
+        <button type="button" class="btn" id="aiuto-guida"><span data-testo="semplice.guida"></span></button>
+        <button type="button" class="btn" id="aiuto-recupero"><span data-testo="recupero.apri"></span></button>
+        <button type="button" class="btn" id="aiuto-completa"><span data-testo="semplice.passaCompleta"></span></button>
+      </div>
+    </details>
+    <button type="button" class="btn" id="btn-impostazioni" data-comando="impostazioni" data-icona="impostazioni" data-etichetta="comandi.impostazioni" aria-haspopup="dialog"><span class="etichetta-testo" data-testo="comandi.impostazioni"></span></button>
+    <button type="button" class="btn btn-icona" id="btn-pannello-dx" data-comando="pannelli" data-icona="pannello-dx" data-etichetta="comandi.pannelloDx" aria-controls="pannello-dx"></button>
   </header>
 
   <div class="corpo">
@@ -1340,14 +1458,14 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
         </section>
         <section id="sezione-libreria" role="tabpanel" aria-labelledby="scheda-libreria" hidden>
           <div class="fila-pulsanti">
-            <button type="button" class="btn" id="libreria-apri-cartella" data-icona="cartella"><span data-testo="libreria.apriCartella"></span></button>
-            <button type="button" class="btn" id="libreria-scegli-file" data-icona="immagine"><span data-testo="libreria.scegliFile"></span></button>
+            <button type="button" class="btn" id="libreria-apri-cartella" data-comando="immagini-cartella" data-icona="cartella"><span data-testo="libreria.apriCartella"></span></button>
+            <button type="button" class="btn" id="libreria-scegli-file" data-comando="immagini-scegli" data-icona="immagine"><span data-testo="libreria.scegliFile"></span></button>
           </div>
           <p class="aiuto" data-testo="libreria.aiuto"></p>
-          <p class="libreria-cartella" id="libreria-cartella"></p>
-          <div class="griglia-miniature" id="libreria-griglia"></div>
-          <p class="gruppo-titolo" id="libreria-progetto-titolo" data-testo="libreria.nelProgetto" hidden></p>
-          <div class="griglia-miniature" id="libreria-progetto"></div>
+          <p class="libreria-cartella" id="libreria-cartella" data-comando="immagini-cartella"></p>
+          <div class="griglia-miniature" id="libreria-griglia" data-comando="immagini-cartella"></div>
+          <p class="gruppo-titolo" id="libreria-progetto-titolo" data-comando="immagini-progetto" data-testo="libreria.nelProgetto" hidden></p>
+          <div class="griglia-miniature" id="libreria-progetto" data-comando="immagini-progetto"></div>
         </section>
         <section id="sezione-catalogo" role="tabpanel" aria-labelledby="scheda-catalogo" hidden></section>
       </div>
@@ -1383,10 +1501,15 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
       <div class="pannello-interno">
         <div class="schede" id="schede-destra" role="tablist">
           <button type="button" role="tab" id="scheda-proprieta" aria-controls="sezione-proprieta" data-testo="proprieta.titolo"></button>
-          <button type="button" role="tab" id="scheda-guida" aria-controls="sezione-guida" data-testo="guida.titolo"></button>
+          <button type="button" role="tab" id="scheda-guida" data-comando="guida" aria-controls="sezione-guida" data-testo="guida.titolo"></button>
         </div>
         <section id="sezione-proprieta" role="tabpanel" aria-labelledby="scheda-proprieta">
+          <div class="nota-semplice solo-semplice" id="semplice-nota" hidden>
+            <p data-testo="semplice.notaCompleta"></p>
+            <button type="button" class="btn" id="semplice-nota-completa" data-testo="semplice.usaCompleta"></button>
+          </div>
           <div id="proprieta"></div>
+          <button type="button" class="btn btn-allineato mostra-tutto solo-semplice" id="btn-mostra-tutto" data-testo="semplice.mostraTutto"></button>
         </section>
         <section id="sezione-guida" role="tabpanel" aria-labelledby="scheda-guida" hidden>
           <div id="guida"></div>
@@ -1406,9 +1529,17 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
       <button type="button" class="btn btn-icona" id="btn-chiudi-impostazioni" data-icona="chiudi" data-etichetta="comandi.chiudi"></button>
     </div>
 
-    <section class="imp-gruppo" aria-labelledby="imp-g-aspetto">
+    <section class="imp-gruppo" aria-labelledby="imp-g-aspetto" data-comando="imp-aspetto">
       <h3 class="imp-gruppo-titolo" id="imp-g-aspetto" data-testo="impostazioni.gAspetto"></h3>
       <p class="imp-gruppo-aiuto" data-testo="impostazioni.gAspettoAiuto"></p>
+      <div class="campo" role="group" aria-labelledby="nome-modalita" data-comando="imp-modalita">
+        <span class="campo-nome" id="nome-modalita" data-testo="semplice.modalita"></span>
+        <div class="segmentato" id="seg-modalita">
+          <button type="button" data-valore="semplice" data-testo="semplice.semplice"></button>
+          <button type="button" data-valore="completa" data-testo="semplice.completa"></button>
+        </div>
+        <p class="nota" data-testo="semplice.modalitaAiuto"></p>
+      </div>
       <label class="campo">
         <span class="campo-nome" data-testo="impostazioni.tema"></span>
         <select id="sel-tema"></select>
@@ -1431,15 +1562,24 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
         </div>
         <p class="nota" data-testo="impostazioni.aiutoDimensione"></p>
       </div>
+      <div class="campo" role="group" aria-labelledby="nome-input">
+        <span class="campo-nome" id="nome-input" data-testo="tocco.scelta"></span>
+        <div class="segmentato" id="seg-input">
+          <button type="button" data-valore="automatico" data-testo="tocco.automatico"></button>
+          <button type="button" data-valore="tocco" data-testo="tocco.tocco"></button>
+          <button type="button" data-valore="mouse" data-testo="tocco.mouse"></button>
+        </div>
+        <p class="nota" id="nota-input"></p>
+      </div>
     </section>
 
-    <section class="imp-gruppo" aria-labelledby="imp-g-fumetto">
+    <section class="imp-gruppo" aria-labelledby="imp-g-fumetto" data-comando="imp-fumetto">
       <h3 class="imp-gruppo-titolo" id="imp-g-fumetto" data-testo="impostazioni.gFumetto"></h3>
       <p class="imp-gruppo-aiuto" data-testo="impostazioni.gFumettoAiuto"></p>
       <button type="button" class="btn btn-allineato" id="imp-vai-fumetto" data-testo="impostazioni.vaiFumetto"></button>
     </section>
 
-    <section class="imp-gruppo" aria-labelledby="imp-g-aiuti">
+    <section class="imp-gruppo" aria-labelledby="imp-g-aiuti" data-comando="imp-aiuti">
       <h3 class="imp-gruppo-titolo" id="imp-g-aiuti" data-testo="impostazioni.aiuti"></h3>
       <p class="imp-gruppo-aiuto" data-testo="impostazioni.gAiutiAiuto"></p>
       <label class="campo-spunta"><input type="checkbox" id="imp-suggerimenti"><span data-testo="impostazioni.mostraSuggerimenti"></span></label>
@@ -1451,7 +1591,7 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
       <p class="imp-gruppo-aiuto" data-testo="impostazioni.gSalvataggioAiuto"></p>
       <label class="campo-spunta"><input type="checkbox" id="imp-avviso-file"><span data-testo="impostazioni.avvisoSenzaFile"></span></label>
       <p class="nota" data-testo="impostazioni.aiutoChiusura"></p>
-      <div class="campo" id="campo-cartella">
+      <div class="campo" id="campo-cartella" data-comando="imp-cartella">
         <span class="campo-nome" data-testo="cartella.titolo"></span>
         <p class="nota" data-testo="cartella.aiuto"></p>
         <p class="nota" id="car-stato" role="status"></p>
@@ -1461,7 +1601,7 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
           <button type="button" class="btn" id="car-disattiva" data-testo="cartella.disattiva" hidden></button>
         </div>
       </div>
-      <div class="campo" id="campo-sicurezza">
+      <div class="campo" id="campo-sicurezza" data-comando="imp-sicurezza">
         <span class="campo-nome" data-testo="sicurezza.titolo"></span>
         <p class="nota" data-testo="sicurezza.aiuto"></p>
         <p class="nota" id="sic-stato" role="status"></p>
@@ -1473,7 +1613,7 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
       </div>
     </section>
 
-    <section class="imp-gruppo" aria-labelledby="imp-g-font" id="gruppo-font">
+    <section class="imp-gruppo" aria-labelledby="imp-g-font" id="gruppo-font" data-comando="imp-font">
       <h3 class="imp-gruppo-titolo" id="imp-g-font" data-testo="font.mieiFont"></h3>
       <p class="imp-gruppo-aiuto" data-testo="impostazioni.gFontAiuto"></p>
     </section>
@@ -1498,7 +1638,7 @@ textarea { width: 100%; padding: 8px 10px; border: var(--linea) solid var(--bord
   'use strict';
   const V = (window.Vignetta = window.Vignetta || {});
 
-  V.versione = '1.1.2';
+  V.versione = '2.0';
   V.dati = V.dati || {};
   V.lingua = 'it';
 
@@ -1638,7 +1778,7 @@ Vignetta.dati.testi.it = {
     titolo: 'Informazioni su Vignetta',
     apri: 'Informazioni su Vignetta',
     piede: '© 2026 Roberto Lanza',
-    versione: 'Versione 1.1.1',
+    versione: 'Versione 2.0',
     autore: 'Vignetta è un progetto di Roberto Lanza, pensato per chi ha una storia da raccontare e le immagini per farlo. Possono essere foto, disegni fatti a mano o lavori creati con altri programmi: l’app non disegna, ma aiuta a montarli in pagina come un vero fumetto, con balloon, didascalie e il copione accanto.',
     licenza: 'Il codice e i disegni dell’app sono distribuiti con la licenza PolyForm Noncommercial 1.0.0. Si possono usare gratis per scopi non commerciali (uso personale, studio, scuole, enti di beneficenza, ricerca e pubblica amministrazione), copiare, modificare e condividere, conservando la licenza e l’avviso di copyright. Per un uso commerciale serve un accordo con l’autore. Il nome «Vignetta - Officina del Fumetto» e il logo restano riservati all’autore, e chi distribuisce una versione modificata deve darle un nome e un logo diversi.',
     privacy: 'Vignetta funziona senza internet e non invia nulla a nessuno. Non ci sono account né servizi esterni, e i fumetti restano nel tuo computer, nel browser o nei file .vgn che salvi tu.',
@@ -1842,6 +1982,138 @@ Vignetta.dati.testi.it = {
     erroreNonProgetto: 'Questo file non è un progetto di Vignetta.',
     erroreTroppoNuovo: 'Questo progetto è stato salvato con una versione più nuova di Vignetta: aggiorna l’app per aprirlo.',
   },
+  semplice: {
+    modalita: 'Modalità',
+    semplice: 'Semplice',
+    completa: 'Completa',
+    modalitaAiuto: 'Semplice mostra solo i comandi per cominciare: modelli, foto, balloon, PDF. Completa mostra tutti gli strumenti. Il fumetto resta lo stesso.',
+    aiuto: 'Aiuto',
+    tourBreve: 'Tour breve',
+    guida: 'Guida',
+    passaCompleta: 'Passa alla modalità completa',
+    notaCompleta: 'Questo elemento è stato fatto con strumenti della modalità completa. Qui puoi spostarlo o eliminarlo; per modificarlo usa la modalità completa.',
+    usaCompleta: 'Usa la modalità completa',
+    mostraTutto: 'Mostra tutto',
+    domanda: 'Come vuoi usare Vignetta?',
+    domandaAiuto: 'Puoi cambiare idea quando vuoi, qui o nelle Impostazioni.',
+    sceltaSemplice: 'Semplice',
+    sceltaSempliceAiuto: 'Pochi comandi per cominciare: scegli, aggiungi le foto, scrivi i balloon.',
+    sceltaCompleta: 'Completa',
+    sceltaCompletaAiuto: 'Tutti gli strumenti: stili, effetti, copione, esportazioni.',
+    creaIn3Passi: 'Crea in 3 passi',
+    passo: 'Passo {n} di 3',
+    passoFormato: 'Scegli il formato',
+    passoModello: 'Scegli come dividere la pagina',
+    passoFoto: 'Aggiungi le tue foto',
+    passoFotoAiuto: 'Le foto entrano nelle vignette, una per vignetta, nell’ordine in cui le scegli. Puoi anche saltare questo passo e aggiungerle dopo.',
+    scegliFoto: 'Scegli le foto',
+    fotoScelte: '{n} foto scelte',
+    unaFotoScelta: 'Una foto scelta',
+    creaFumetto: 'Crea il fumetto',
+    saltaFoto: 'Salta, le aggiungo dopo',
+    indietro: 'Indietro',
+    balloonEsempio: 'Fai doppio clic per scrivere',
+    balloonEsempioTocco: 'Fai doppio tocco per scrivere',
+    creaPdf: 'Crea il PDF',
+    esportaSemplice: 'Tutte le pagine in un PDF, pronto da stampare o da condividere.',
+    altreOpzioni: 'Altre opzioni',
+  },
+  tocco: {
+    scelta: 'Come usi Vignetta',
+    automatico: 'Automatico',
+    tocco: 'Con le dita',
+    mouse: 'Con il mouse',
+    notaAttivo: 'Ora è attivo il modo per le dita: comandi e punti da trascinare più grandi. Un dito sul tavolo sposta la vista, due dita ingrandiscono.',
+    notaSpento: 'Ora è attivo il modo per il mouse. «Automatico» sceglie da solo il modo per le dita sui tablet.',
+    maniglia: 'Allunga o accorcia il pannello',
+    aggiungoNellaVignetta: 'Tocca un elemento per metterlo nella vignetta {n}, quella selezionata.',
+    aggiungoAlCentro: 'Tocca un elemento per metterlo al centro della pagina. Per metterlo in una vignetta, prima toccala sulla tavola.',
+    fotoNellaVignetta: 'Tocca una foto per metterla nella vignetta {n}, quella selezionata.',
+    fotoAlCentro: 'Tocca una foto per metterla al centro della pagina. Per metterla in una vignetta, prima tocca la vignetta sulla tavola.',
+    togliColori: 'Togli dei colori',
+    togliColoriFatto: 'Fine',
+    togliColoriAiuto: 'Tocca un colore per toglierlo dalla tavolozza.',
+    tavolozzaAiuto: 'Si salvano insieme al fumetto. Per toglierne uno, usa «Togli dei colori».',
+  },
+  stato: {
+    browser: 'Solo in questo browser',
+    file: 'Salvato nel file {quando}',
+    copia: 'Copia di sicurezza fatta {quando}',
+    alle: 'alle {ora}',
+    ilGiorno: 'il {data} alle {ora}',
+    breveBrowser: 'Browser',
+    breveFile: 'File',
+    breveCopia: 'Copia',
+    breveNessuno: 'Non salvato',
+    breveErrore: 'Errore',
+    aiutoClic: 'Clicca per sapere dove si trova il lavoro e cosa conviene fare',
+    salvaNelFile: 'Salva nel file',
+    scaricaIlFile: 'Salva il file',
+    spiegaBrowser: 'Le ultime modifiche sono salvate solo nell’archivio di questo browser. Restano anche se chiudi la pagina, ma spariscono se cancelli i dati di navigazione, se il browser libera spazio da solo o se cambi computer o tablet.',
+    spiegaBrowserFile: 'Il file «{nome}» c’è, ma non ha ancora queste modifiche.',
+    spiegaBrowserCopia: 'L’ultima copia di sicurezza è stata fatta {quando}: le modifiche successive non ci sono.',
+    spiegaFile: 'Tutto il lavoro è nel file «{nome}», salvato {quando}. Conserva quel file: è la copia che conta. Una seconda copia, in un altro posto, ti mette al riparo anche se il file si rovina.',
+    spiegaCopia: 'L’ultima copia completa del fumetto, con le foto, è stata fatta {quando} {dove}.',
+    spiegaCopiaFileVecchio: 'Il file del fumetto non ha ancora le ultime modifiche: salvalo quando hai finito.',
+    spiegaCopiaSenzaFile: 'Il fumetto non è ancora stato salvato in un file tuo: la copia è quella da conservare.',
+    spiegaErrore: 'L’ultimo salvataggio nel browser non è riuscito, forse perché lo spazio è finito. Salva subito il lavoro in un file o una copia.',
+    dove_cartella: 'nella cartella delle copie di sicurezza',
+    dove_scaricato: 'nella cartella Download',
+    dove_condiviso: 'con la condivisione',
+    archivioPersistente: 'Questo browser conserva i fumetti finché non cancelli tu i dati di navigazione.',
+    archivioNonPersistente: 'Attenzione: questo browser potrebbe cancellare da solo i fumetti salvati qui, se lo spazio scarseggia. Salva spesso un file o una copia.',
+    pesoFumetto: 'Le foto di questo fumetto pesano {mb} MB ({foto} foto).',
+    pesante: 'Questo fumetto sta diventando pesante: {foto} foto, {mb} MB. Funziona, ma si apre e si salva più lentamente, soprattutto su un tablet. Se puoi, dividilo in più fumetti o usa foto più piccole.',
+    moltoPesante: 'Questo fumetto è molto pesante: {foto} foto, {mb} MB. Su un tablet o su un computer con poca memoria potrebbe non aprirsi più. Salva subito una copia, e valuta di dividerlo in più fumetti.',
+    fontMancante: 'Manca un carattere aggiunto a mano da chi ha fatto il fumetto: lo usano {elementi} testi, a pagina {pagine}. Al suo posto si vede il carattere dello stile del fumetto. Se hai il file del carattere, aggiungilo da Impostazioni, I miei font, e il fumetto torna come prima.',
+    fontMancanti: 'Mancano {n} caratteri aggiunti a mano da chi ha fatto il fumetto: li usano {elementi} testi, alle pagine {pagine}. Al loro posto si vede il carattere dello stile del fumetto. Se hai i file dei caratteri, aggiungili da Impostazioni, I miei font, e il fumetto torna come prima.',
+    promemoriaMai: 'Questo fumetto non è ancora in un file: da {minuti} minuti il lavoro è solo in questo browser.',
+    promemoriaFile: 'Le modifiche degli ultimi {minuti} minuti sono solo in questo browser, non ancora nel file del fumetto.',
+    promemoriaCome: 'Salvale nel file: se il browser perde i suoi dati, il file resta.',
+    promemoriaComeCopia: 'Salva una copia e conservala, per esempio in File o in Drive: se il browser perde i suoi dati, la copia resta.',
+  },
+  copie: {
+    salvaUnaCopia: 'Salva una copia',
+    scaricaTutti: 'Scarica tutti i miei fumetti',
+    importaCopia: 'Importa copia…',
+    condividi: 'Condividi il file',
+    prontaDaCondividere: 'La copia è pronta: premi qui per scegliere dove mandarla.',
+    condivisa: 'Copia «{nome}» condivisa. Conservala dove preferisci.',
+    scaricata: 'Copia «{nome}» scaricata nella cartella Download. Spostala dove conservi i tuoi lavori.',
+    conProblemi: 'Alcune foto non si leggevano e non sono nella copia: {foto}.',
+    recupero: 'recupero',
+    nomeTutti: 'Vignetta, tutti i fumetti',
+    preparoTutti: 'Preparo la copia di tutti i fumetti…',
+    erroreTutti: 'Non sono riuscito a preparare la copia di tutti i fumetti. Prova a salvarli uno alla volta.',
+    tuttiScaricati: 'Scaricato «{nome}» con {n} fumetti nella cartella Download. Per rimetterli in un browser usa «Importa copia».',
+    tuttiCondivisi: 'Condiviso «{nome}» con {n} fumetti. Per rimetterli in un browser usa «Importa copia».',
+    tuttiFalliti: 'Non sono riuscito a includere: {titoli}.',
+    titoloImportato: '{titolo} (importato il {data})',
+    importatoUno: 'Importato un fumetto: lo trovi in «I miei fumetti».',
+    importati: 'Importati {n} fumetti: li trovi in «I miei fumetti».',
+    nessunoImportato: 'Nessun fumetto importato.',
+    importatiComeCopia: 'Questi c’erano già, con modifiche diverse, e sono entrati come copia: {titoli}.',
+    giaPresenti: 'Questi c’erano già, uguali, e li ho lasciati come sono: {titoli}.',
+    nonValidi: 'Questi file non sono fumetti di Vignetta: {nomi}.',
+    archivioNonPersistente: 'Questo browser potrebbe cancellare da solo i fumetti salvati qui, se lo spazio scarseggia. Ogni tanto salva una copia e conservala.',
+    spazioUsato: 'Spazio usato in questo browser: {usato} MB.',
+    spazioUsatoDi: 'Spazio usato in questo browser: {usato} MB su {quota} disponibili.',
+  },
+  recupero: {
+    apri: 'Ho perso un fumetto',
+    titolo: 'Ho perso un fumetto',
+    spiega: 'Qui trovi tutto quello che Vignetta tiene in questo browser: ogni fumetto e le sue versioni recenti. Questa finestra legge soltanto, non cambia niente. «Scarica» crea un file .vgn completo, con le foto: poi lo apri con «Apri».',
+    lettura: 'Leggo l’archivio del browser…',
+    vuoto: 'In questo browser non c’è nessun fumetto. Se lavoravi in un altro browser o su un altro computer, cerca lì, oppure cerca i file .vgn nella cartella Download.',
+    statoAttuale: 'Com’è adesso',
+    versione: 'Versione',
+    scarica: 'Scarica',
+    riassunto: '{pagine} pagine, {vignette} vignette, {elementi} elementi, {foto} foto',
+    illeggibile: 'dati illeggibili',
+    fotoMancanti: 'Fatto, ma {n} foto non c’erano più nel browser: nel file quelle vignette sono vuote.',
+    errore: 'Non sono riuscito a creare il file di questa copia.',
+    ultimaRisorsa: 'Se l’app non si apre più, c’è anche la pagina di recupero (recupero.html), che sta accanto all’app: va aperta nello stesso browser.',
+  },
   formatiPagina: {
     A4: { nome: 'A4', uso: 'Per stampa e PDF, in verticale o in orizzontale. 210 × 297 mm.' },
     A5: { nome: 'A5', uso: 'Per opuscoli e piccoli albi, in verticale o in orizzontale. 148 × 210 mm.' },
@@ -1996,8 +2268,8 @@ Vignetta.dati.testi.it = {
     piuGrande: 'Testo più grande',
   },
   catalogo: {
-    // Il nome della scheda ha una chiave sua: «titolo» è la voce Titolo del catalogo (nella 1.1 e nella
-    // 1.1.1 la scheda si chiamava per errore «Titolo», perché le due chiavi coincidevano).
+    // Il nome della scheda ha una chiave sua: «titolo» è la voce Titolo del catalogo (dalla 1.1 la scheda
+    // si chiamava per errore «Titolo», perché le due chiavi coincidevano).
     scheda: 'Balloon',
     aiuto: 'Tocca per aggiungere nella vignetta selezionata, o trascina sulla pagina.',
     titoloBalloon: 'Balloon',
@@ -2375,6 +2647,9 @@ Vignetta.dati.testi.it = {
     proprieta: { titolo: 'Le proprietà', testo: 'Quando selezioni qualcosa, qui compaiono i suoi comandi: colori, bordi, caratteri, foto. Se non selezioni niente, ci sono le impostazioni della pagina e dello stile.' },
     guida: { titolo: 'La Guida', testo: 'La Guida spiega gli stili e le parole del fumetto, con disegni ed esempi. Si legge quando vuoi, anche ad alta voce.' },
     copione: { titolo: 'Il copione', testo: 'Con questo pulsante il copione si apre accanto alla tavola. Quello che scrivi nei balloon compare lì, e quello che scrivi lì compare nei balloon.' },
+    immagini: { titolo: 'Le foto', testo: 'Nella scheda Immagini scegli le foto dal computer o dal tablet. Tocca una vignetta, poi tocca una foto: entra lì dentro.' },
+    balloonSemplice: { titolo: 'I balloon', testo: 'Nella scheda Balloon trovi dialoghi, pensieri, urli, sussurri e didascalie. Tocca una voce per metterla nella pagina, poi scrivi con un doppio clic.' },
+    salvaSemplice: { titolo: 'Salvare e creare il PDF', testo: 'Il lavoro si salva da solo nel browser. Salva crea un file da conservare; Esporta crea il PDF da stampare o da condividere.' },
     salva: { titolo: 'Salvare ed esportare', testo: 'Il lavoro si salva da solo nel browser. Salva crea un file .vgn da conservare; Esporta crea un PDF, un CBZ o delle immagini.' },
     impostazioni: { titolo: 'Le impostazioni', testo: 'Da qui cambi l’aspetto dell’app, per esempio i colori o la grandezza delle scritte, e trovi in un posto solo tutte le scelte che puoi fare.' },
   },
@@ -3278,6 +3553,54 @@ Vignetta.dati.guida = /* @guida-inizio */ {
 
 </script>
 <script>
+// dati/modo-semplice.js
+/* La modalità Semplice: l'UNICO elenco di cosa si vede (approvato il 2026-11-27).
+   Come funziona: ogni comando che la modalità Semplice può nascondere ha un nome, scritto nell'interfaccia
+   con l'attributo data-comando="nome" (nel punto dove il comando si crea, senza duplicare codice).
+   Nella modalità Semplice si vede un comando con un nome solo se il nome è in «visibili».
+   Nel pannello delle proprietà vale anche per i gruppi senza nome: si vedono solo quelli elencati.
+   I comandi senza nome fuori dalle proprietà (per esempio lo zoom) si vedono sempre.
+   Nascondere non cambia i dati: un fumetto fatto in Completa resta identico in Semplice. */
+Vignetta.dati.modoSemplice = {
+  // I formati della schermata iniziale e di «Crea in 3 passi».
+  formati: ['tavola', 'striscia', 'fotoromanzo', 'singola'],
+
+  // Quanti modelli proporre per ogni formato nel secondo passo (i primi del formato)...
+  modelliPerFormato: 5,
+  // ...oppure, per un formato, proprio questi. Nella Tavola c'è anche «Tre fasce», per le pagine di tre
+  // vignette (è il compito della prova con le persone, docs/prova-utenti.md).
+  modelli: {
+    tavola: ['griglia-6', 'tre-fasce', 'griglia-4', 'classica-5', 'apertura'],
+  },
+
+  visibili: [
+    // Barra in alto
+    'pannelli', 'annulla', 'ripeti', 'salva', 'stato-salvataggio', 'promemoria', 'esporta', 'aiuto', 'impostazioni',
+    // Pannello di sinistra: Modelli, Immagini, Balloon
+    'modelli-formato',
+    'immagini-scegli', 'immagini-progetto',
+    'catalogo-titoloBalloon',
+    // Proprietà, niente selezionato: la pagina (sfondo, duplica, elimina, sposta)
+    'pagina-base',
+    // Proprietà della vignetta
+    'vignetta-foto', 'vignetta-bordo',
+    // Proprietà del balloon
+    'balloon-tipo', 'balloon-testo', 'balloon-coda', 'balloon-colori',
+    // Proprietà degli elementi fatti in Completa (effetti, forme, gruppi, immagini libere): solo livelli ed elimina
+    'elemento-livelli', 'elemento-elimina',
+    // Impostazioni
+    'imp-modalita', 'imp-aspetto',
+  ],
+
+  // Esporta in Semplice: un solo pulsante «Crea il PDF» con queste scelte.
+  esporta: { formato: 'pdf', dpi: 200, abbondanza: false, pagine: 'tutte' },
+
+  // Il tour breve: solo le tappe di ciò che si vede.
+  tour: ['tavola', 'modelli', 'immagini', 'balloon', 'salva'],
+};
+
+</script>
+<script>
 // moduli/icone.js
 /* icone.js: icone disegnate con un solo stile di linea (griglia 24, tratto 1,75, estremità arrotondate).
    Gli elementi con l'attributo data-icona ricevono l'icona corrispondente. */
@@ -3322,6 +3645,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     raggruppa: 'M3.5 3.5h5M3.5 3.5v5M20.5 3.5h-5M20.5 3.5v5M3.5 20.5h5M3.5 20.5v-5M20.5 20.5h-5M20.5 20.5v-5M7.5 7.5h5v5h-5zM11.5 11.5h5v5h-5z',
     separa: 'M5 5h6v6H5zM13 13h6v6h-6z',
     'seleziona-piu': 'M4 4h7v7H4zM16.5 4v7M13 7.5h7M4 13h7v7H4zM13 13h7v7h-7z',
+    aiuto: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.1-2.4 3.7M12 17v.2',
     contagocce: 'M15 4l5 5-2.5 2.5-5-5zM12.5 6.5 5 14v5h5l7.5-7.5',
     tavolozza: 'M12 3.5a8.5 8.5 0 1 0 0 17c1.2 0 1.6-.8 1.6-1.5 0-1-.8-1.3-.8-2.1 0-.9.7-1.6 1.6-1.6h2.1a4 4 0 0 0 4-4C20.5 7 16.8 3.5 12 3.5zM7.6 12h.01M9.4 8h.01M14.4 8h.01',
     'in-fondo': 'M12 4v11m-5-5 5 5 5-5M5 20h14',
@@ -3558,6 +3882,259 @@ Vignetta.dati.guida = /* @guida-inizio */ {
 
 </script>
 <script>
+// moduli/tocco.js
+/* tocco.js: il modo tocco, per usare Vignetta con le dita su un tablet.
+   - Si attiva da solo dove il puntatore principale è un dito (matchMedia('(pointer: coarse)')), oppure a mano
+     in Impostazioni: Automatico, Tocco, Mouse. La scelta si ricorda (preferenza «modoInput»).
+   - Con il modo tocco la pagina ha la classe «modo-tocco»: comandi e zone da trascinare di almeno 44 pixel,
+     barra con etichette, cassetto delle proprietà dal basso sugli schermi stretti. Col mouse niente cambia.
+   - Il browser non deve ingrandire o scorrere la pagina da solo: i gesti con le dita li gestisce la tavola
+     (tavola.js: un dito sul tavolo vuoto sposta la vista, due dita ingrandiscono e spostano). */
+(function (V) {
+  'use strict';
+
+  const t = (...a) => V.t(...a);
+  const $ = (id) => document.getElementById(id);
+  const MODI = ['automatico', 'tocco', 'mouse'];
+  const dito = window.matchMedia ? window.matchMedia('(pointer: coarse)') : { matches: false, addEventListener() {} };
+  const stretto = window.matchMedia ? window.matchMedia('(max-width: 899px)') : { matches: false, addEventListener() {} };
+  let attivoOra = false;
+
+  const scelta = () => {
+    const m = V.preferenze.leggi('modoInput', 'automatico');
+    return MODI.includes(m) ? m : 'automatico';
+  };
+  const calcola = () => (scelta() === 'automatico' ? dito.matches : scelta() === 'tocco');
+
+  function applica() {
+    const prima = attivoOra;
+    attivoOra = calcola();
+    document.documentElement.classList.toggle('modo-tocco', attivoOra);
+    aggiornaScelta();
+    if (prima !== attivoOra) {
+      V.annuncia('modoTocco', attivoOra);
+      if (V.stato.progetto && V.tavola) V.tavola.disegna(); // maniglie più grandi o più piccole
+    }
+  }
+
+  function imposta(modo) {
+    if (!MODI.includes(modo)) return;
+    V.preferenze.scrivi('modoInput', modo);
+    applica();
+  }
+
+  function aggiornaScelta() {
+    const seg = $('seg-input');
+    if (!seg) return;
+    seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.valore === scelta())));
+    const nota = $('nota-input');
+    if (nota) nota.textContent = t(attivoOra ? 'tocco.notaAttivo' : 'tocco.notaSpento');
+  }
+
+  // --- Il cassetto delle proprietà dal basso, con la maniglia ---
+  // Un tocco sulla maniglia lo porta da metà schermo a quasi tutto lo schermo e viceversa;
+  // trascinandola si sceglie l'altezza. L'altezza è una variabile di stile (--altezza-foglio).
+  const ALTEZZE = { minima: 0.3, media: 0.5, massima: 0.85 };
+  function collegaManiglia() {
+    const pannello = document.querySelector('.pannello-dx');
+    if (!pannello || pannello.querySelector('.maniglia-foglio')) return;
+    const maniglia = V.ui.h('button', {
+      type: 'button', class: 'maniglia-foglio', 'aria-label': t('tocco.maniglia'), title: t('tocco.maniglia'),
+    }, V.ui.h('span', { class: 'maniglia-foglio-segno', 'aria-hidden': 'true' }));
+    pannello.prepend(maniglia);
+    let altezza = ALTEZZE.media;
+    const usa = (h) => {
+      altezza = Math.max(ALTEZZE.minima, Math.min(ALTEZZE.massima, h));
+      document.documentElement.style.setProperty('--altezza-foglio', Math.round(altezza * 100) + 'dvh');
+    };
+    usa(altezza);
+    const alterna = () => usa(altezza < (ALTEZZE.media + ALTEZZE.massima) / 2 ? ALTEZZE.massima : ALTEZZE.media);
+    let gestito = false;
+    // Con la tastiera (Invio o spazio) o con un clic senza puntatore: si alterna come con un tocco.
+    maniglia.addEventListener('click', () => { if (gestito) { gestito = false; return; } alterna(); });
+    maniglia.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const y0 = e.clientY, h0 = altezza, alta = window.innerHeight;
+      let mosso = false;
+      const muovi = (m) => {
+        if (m.pointerId !== e.pointerId) return;
+        if (Math.abs(m.clientY - y0) > 6) mosso = true;
+        if (mosso) usa(h0 + (y0 - m.clientY) / alta);
+      };
+      const fine = (m) => {
+        if (m.pointerId !== e.pointerId) return;
+        window.removeEventListener('pointermove', muovi);
+        window.removeEventListener('pointerup', fine);
+        window.removeEventListener('pointercancel', fine);
+        if (!mosso) alterna();
+        gestito = true; // il clic che segue questo tocco non deve alternare di nuovo
+      };
+      window.addEventListener('pointermove', muovi);
+      window.addEventListener('pointerup', fine);
+      window.addEventListener('pointercancel', fine);
+    });
+  }
+
+  // --- Dove si aggiunge un balloon o un'immagine toccandoli ---
+  // Nel modo tocco, sopra il catalogo e la libreria una riga dice se l'aggiunta va nella vignetta
+  // selezionata o al centro della pagina: così non serve trascinare.
+  function aggiornaDoveAggiungo() {
+    const p = V.stato.progetto;
+    if (!p) return;
+    metteRighe();
+    const v = V.stato.selezione && V.paginaAttiva().vignette.find((x) => x.id === V.stato.selezione);
+    const indice = v ? V.paginaAttiva().vignette.indexOf(v) + 1 : 0;
+    document.querySelectorAll('.dove-aggiungo').forEach((n) => {
+      const foto = n.dataset.cosa === 'foto';
+      n.textContent = v ? t(foto ? 'tocco.fotoNellaVignetta' : 'tocco.aggiungoNellaVignetta', { n: indice })
+        : t(foto ? 'tocco.fotoAlCentro' : 'tocco.aggiungoAlCentro');
+      n.classList.toggle('in-vignetta', !!v);
+    });
+  }
+  // Le sezioni si ridisegnano da sole (per esempio il catalogo): la riga si rimette se manca.
+  function metteRighe() {
+    ['sezione-catalogo', 'sezione-libreria'].forEach((id) => {
+      const sezione = $(id);
+      if (!sezione || sezione.querySelector(':scope > .dove-aggiungo')) return;
+      sezione.prepend(V.ui.h('p', { class: 'dove-aggiungo', role: 'status', 'data-cosa': id === 'sezione-libreria' ? 'foto' : 'elementi' }));
+    });
+  }
+  function collegaDoveAggiungo() {
+    metteRighe();
+    ['scheda-catalogo', 'scheda-libreria'].forEach((id) => { const s = $(id); if (s) s.addEventListener('click', aggiornaDoveAggiungo); });
+    V.ascolta('selezione', aggiornaDoveAggiungo);
+    V.ascolta('progetto', aggiornaDoveAggiungo);
+    aggiornaDoveAggiungo();
+  }
+
+  function init() {
+    const seg = $('seg-input');
+    if (seg) seg.addEventListener('click', (e) => { const b = e.target.closest('button[data-valore]'); if (b) imposta(b.dataset.valore); });
+    if (dito.addEventListener) dito.addEventListener('change', applica);
+    // Safari sugli schermi a tocco ingrandisce la pagina con il pizzico anche dove touch-action lo vieta:
+    // nel modo tocco il pizzico serve alla tavola, quindi il gesto del browser si ferma.
+    if ('ongesturestart' in window) {
+      ['gesturestart', 'gesturechange'].forEach((n) => document.addEventListener(n, (e) => { if (attivoOra) e.preventDefault(); }, { passive: false }));
+    }
+    collegaManiglia();
+    collegaDoveAggiungo();
+    applica();
+  }
+
+  // La classe si mette subito, prima di disegnare l'interfaccia, così non si vede il cambio di misure.
+  attivoOra = calcola();
+  document.documentElement.classList.toggle('modo-tocco', attivoOra);
+
+  V.tocco = { init, imposta, attivo: () => attivoOra, scelta, schermoStretto: () => stretto.matches };
+})(window.Vignetta);
+
+</script>
+<script>
+// moduli/semplice.js
+/* semplice.js: le due modalità, Semplice e Completa. Un solo programma: la Semplice mostra meno comandi.
+   - Cosa si vede in Semplice sta in un solo elenco, dati/modo-semplice.js. Qui si mette la classe
+     «modo-semplice» sulla pagina e si segnano i comandi elencati (attributo data-in-semplice); il resto
+     lo nascondono le regole di stile. Nascondere non tocca mai i dati del fumetto.
+   - La scelta si ricorda nel browser (preferenza «modoApp»). Finché non si sceglie vale la Completa, come
+     nelle versioni precedenti, e la schermata iniziale chiede in modo gentile quale preferire.
+   - Il menu «Aiuto» della barra, la nota «Per modificarlo usa la modalità completa» e «Mostra tutto». */
+(function (V) {
+  'use strict';
+
+  const t = (...a) => V.t(...a);
+  const $ = (id) => document.getElementById(id);
+  const MODI = ['semplice', 'completa'];
+
+  const scelta = () => {
+    const m = V.preferenze.leggi('modoApp', null);
+    return MODI.includes(m) ? m : null;
+  };
+  const attivo = () => scelta() === 'semplice';
+  const visibile = (nome) => V.dati.modoSemplice.visibili.includes(nome);
+
+  // Segna i comandi con un nome che restano visibili in Semplice (quelli creati con V.ui.h si segnano da soli).
+  function segna(radice) {
+    (radice || document).querySelectorAll('[data-comando]').forEach((n) => {
+      n.toggleAttribute('data-in-semplice', visibile(n.dataset.comando));
+    });
+  }
+
+  function applica() {
+    document.documentElement.classList.toggle('modo-semplice', attivo());
+    document.querySelectorAll('#seg-modalita, #iniziale-modalita').forEach((seg) => {
+      seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.valore === (scelta() || 'completa'))));
+    });
+    aggiornaNota();
+  }
+
+  function imposta(modo) {
+    if (!MODI.includes(modo)) return;
+    const prima = attivo();
+    V.preferenze.scrivi('modoApp', modo);
+    applica();
+    if (prima !== attivo()) {
+      V.annuncia('modoApp', modo);
+      if (V.stato.progetto && V.tavola) V.tavola.disegna(); // in Semplice niente pallini per inclinare
+    }
+  }
+
+  // --- Nelle proprietà: cosa la modalità Semplice non sa modificare ---
+  // Effetti, forme, gruppi, immagini libere e selezioni multiple fatti in Completa si vedono, si spostano e
+  // si eliminano; per il resto una nota porta alla modalità completa.
+  function nonModificabile() {
+    if (V.stato.multipla.length) return true;
+    const elm = V.elementoSelezionato && V.elementoSelezionato();
+    return !!elm && elm.tipo !== 'balloon';
+  }
+  function aggiornaNota() {
+    const nota = $('semplice-nota');
+    if (nota) nota.hidden = !(attivo() && V.stato.progetto && nonModificabile());
+  }
+
+  // «Mostra tutto»: si passa alla Completa con lo stesso elemento selezionato e il pannello aperto.
+  function mostraTutto() {
+    imposta('completa');
+    V.annuncia('selezione', V.stato.selezione);
+  }
+
+  // --- Il menu «Aiuto» (solo in Semplice) ---
+  function collegaAiuto() {
+    const menu = $('menu-aiuto');
+    if (!menu) return;
+    const chiudi = () => { menu.open = false; };
+    const voce = (id, fn) => { const b = $(id); if (b) b.addEventListener('click', () => { chiudi(); fn(); }); };
+    voce('aiuto-tour', () => V.tour.apri());
+    voce('aiuto-guida', () => { V.interfaccia.mostraPannello('dx'); $('scheda-guida').click(); });
+    voce('aiuto-recupero', () => V.statoLavoro.apriRecupero());
+    voce('aiuto-completa', () => imposta('completa'));
+    document.addEventListener('pointerdown', (e) => { if (menu.open && !menu.contains(e.target)) chiudi(); });
+    menu.addEventListener('keydown', (e) => { if (e.key === 'Escape') { chiudi(); menu.querySelector('summary').focus(); } });
+  }
+
+  function init() {
+    segna(document);
+    collegaAiuto();
+    document.querySelectorAll('#seg-modalita').forEach((seg) => seg.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-valore]');
+      if (b) imposta(b.dataset.valore);
+    }));
+    const mt = $('btn-mostra-tutto');
+    if (mt) mt.addEventListener('click', mostraTutto);
+    const nt = $('semplice-nota-completa');
+    if (nt) nt.addEventListener('click', mostraTutto);
+    V.ascolta('selezione', aggiornaNota);
+    V.ascolta('cambiato', aggiornaNota);
+    applica();
+  }
+
+  // La classe si mette subito, prima di disegnare l'interfaccia, così non si vede il cambio.
+  document.documentElement.classList.toggle('modo-semplice', attivo());
+
+  V.semplice = { init, imposta, attivo, scelta, visibile, segna, applica, mostraTutto };
+})(window.Vignetta);
+
+</script>
+<script>
 // moduli/zip.js
 /* zip.js: crea e legge archivi ZIP, senza librerie esterne.
    La compressione usa quella già presente nel browser (CompressionStream, "deflate-raw").
@@ -3748,8 +4325,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
         }
       };
       db = await richiesta(r);
-      // Chiede al browser di non cancellare questi dati quando lo spazio scarseggia.
-      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+      // La richiesta di non cancellare questi dati (archiviazione persistente) la fa copie.js all'avvio.
       return true;
     } catch (e) {
       db = null;
@@ -4141,7 +4717,18 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     return voce.cosa;
   }
 
+  // Una modifica continua lasciata a metà che non deve contare (per esempio un trascinamento
+  // interrotto dal secondo dito di un pizzico): il progetto torna com'era e non resta niente da annullare.
+  function annullaInSospeso() {
+    if (inSospeso === null) return;
+    V.stato.progetto = JSON.parse(inSospeso);
+    inSospeso = null;
+    cosaInSospeso = null;
+    dopoModifica();
+  }
+
   V.storia = {
+    annullaInSospeso,
     esegui,
     inizia,
     concludi,
@@ -7185,7 +7772,8 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   }
 
   // Font arrivati con un file .vgn: si registrano; si propone di aggiungerli alla libreria.
-  async function daFileProgetto(elenco) {
+  // Con «silenzioso» la proposta non si mostra: chi chiama la fa dopo, con proponiLibreria(codici).
+  async function daFileProgetto(elenco, opzioni) {
     const nuovi = [];
     for (const f of elenco || []) {
       try {
@@ -7194,19 +7782,41 @@ Vignetta.dati.guida = /* @guida-inizio */ {
       } catch (e) { /* font illeggibile */ }
     }
     if (elenco && elenco.length) ridisegna();
-    if (nuovi.length) {
-      V.interfaccia.avviso(t('font.nuoviDalFile', { n: nuovi.length }), {
-        etichetta: t('font.aggiungiAllaLibreria'),
-        azione: () => aggiungiAllaLibreria(nuovi),
-      });
-    }
+    if (!(opzioni && opzioni.silenzioso)) proponiLibreria(nuovi);
+    return nuovi;
+  }
+
+  function proponiLibreria(nuovi) {
+    if (!nuovi || !nuovi.length) return false;
+    V.interfaccia.avviso(t('font.nuoviDalFile', { n: nuovi.length }), {
+      etichetta: t('font.aggiungiAllaLibreria'),
+      azione: () => aggiungiAllaLibreria(nuovi),
+    });
+    return true;
+  }
+
+  // I font aggiunti a mano che il fumetto usa ma che qui non ci sono: [{ codice, pagine: [1, 3], elementi }].
+  // I testi che li usano si vedono con il carattere dello stile del fumetto.
+  function mancantiIn(progetto) {
+    const mancanti = new Map();
+    const visita = (el, n) => {
+      if (el.font && el.font.startsWith('u:') && !registrati.has(el.font.slice(2))) {
+        const m = mancanti.get(el.font) || { codice: el.font.slice(2), pagine: new Set(), elementi: 0 };
+        m.pagine.add(n);
+        m.elementi++;
+        mancanti.set(el.font, m);
+      }
+      if (el.tipo === 'gruppo') el.figli.forEach((f) => visita(f, n));
+    };
+    progetto.pagine.forEach((p, i) => (p.elementi || []).forEach((el) => visita(el, i + 1)));
+    return [...mancanti.values()].map((m) => ({ codice: m.codice, pagine: [...m.pagine], elementi: m.elementi }));
   }
 
   const recDi = (codice) => registrati.get(codice) || null;
 
   V.font = {
     ESTENSIONI, famiglia, nome, init, aggiungiDaFile, rimuoviDaLibreria, aggiungiAllaLibreria, elencoUtente,
-    usatiDa, caricaPerProgetto, salvaPerProgetto, daFileProgetto, recDi,
+    usatiDa, caricaPerProgetto, salvaPerProgetto, daFileProgetto, proponiLibreria, mancantiIn, recDi,
   };
 })(window.Vignetta);
 
@@ -7393,6 +8003,10 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   }
 
   const px = (n) => n / scala; // converte pixel di schermo in millimetri
+  // Nel modo tocco (tocco.js) le zone da prendere sono di almeno 44 pixel; col mouse restano quelle di sempre.
+  const tocco = () => !!(V.tocco && V.tocco.attivo());
+  const PRESA_DITO = 44;
+  const presa = (mouse) => (tocco() ? Math.max(mouse, PRESA_DITO) : mouse);
 
   // La forma di una vignetta: un rettangolo (con gli angoli arrotondati) o, se obliqua, un poligono.
   function formaVignetta(v, attributi) {
@@ -7413,8 +8027,12 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     svg.addEventListener('keydown', suTasto);
     svg.addEventListener('wheel', suRotellina, { passive: false });
     tavolo.addEventListener('pointerdown', (e) => {
-      if (e.target === tavolo) iniziaRettangolo(e);
+      if (e.target !== tavolo) return;
+      // Col dito, sul tavolo vuoto si sposta la vista; col mouse si disegna il rettangolo di selezione.
+      if (tocco() && e.pointerType !== 'mouse') spostaVista(e);
+      else iniziaRettangolo(e);
     });
+    collegaDueDita();
     collegaTrascinamentoFile();
     collegaZoom();
 
@@ -7504,6 +8122,81 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     window.addEventListener('pointerup', fine);
     window.addEventListener('pointercancel', fine);
   }
+  // --- Gesti con le dita (solo nel modo tocco) ---
+  // Un dito sul tavolo vuoto sposta la vista; due dita ingrandiscono (pizzico) e spostano la pagina.
+  // Se il secondo dito arriva durante un trascinamento, il trascinamento si annulla: era l'inizio del gesto.
+  const gesto = { dita: 0, punti: new Map(), pizzico: null };
+
+  function spostaVista(e) {
+    e.preventDefault();
+    const inizio = { x: e.clientX, y: e.clientY, sl: tavolo.scrollLeft, st: tavolo.scrollTop };
+    const muovi = (m) => {
+      if (m.pointerId !== e.pointerId || gesto.pizzico) return;
+      tavolo.scrollLeft = inizio.sl - (m.clientX - inizio.x);
+      tavolo.scrollTop = inizio.st - (m.clientY - inizio.y);
+    };
+    const fine = (m) => {
+      if (m.pointerId !== e.pointerId) return;
+      window.removeEventListener('pointermove', muovi);
+      window.removeEventListener('pointerup', fine);
+      window.removeEventListener('pointercancel', fine);
+    };
+    window.addEventListener('pointermove', muovi);
+    window.addEventListener('pointerup', fine);
+    window.addEventListener('pointercancel', fine);
+  }
+
+  function annullaTrascinamento() {
+    const info = trascinamento;
+    if (!info) return;
+    trascinamento = null;
+    try { svg.releasePointerCapture(info.pointerId); } catch (_) { /* già rilasciato */ }
+    delete document.body.dataset.trascinamento;
+    V.storia.annullaInSospeso();
+    disegna();
+  }
+
+  function collegaDueDita() {
+    const distanza = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const centro = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    const dentro = (e) => tavolo.contains(e.target) || e.target === tavolo;
+    window.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch' || !tocco() || !dentro(e)) return;
+      gesto.punti.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      gesto.dita = gesto.punti.size;
+      if (gesto.dita === 2) {
+        annullaTrascinamento();
+        const [a, b] = [...gesto.punti.values()];
+        gesto.pizzico = { d0: distanza(a, b), scala0: scala, c0: centro(a, b) };
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+    window.addEventListener('pointermove', (e) => {
+      if (!gesto.punti.has(e.pointerId)) return;
+      gesto.punti.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (!gesto.pizzico || gesto.punti.size < 2) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const [a, b] = [...gesto.punti.values()];
+      const c = centro(a, b), pz = gesto.pizzico;
+      const nuova = pz.scala0 * (distanza(a, b) / Math.max(1, pz.d0));
+      // Prima lo spostamento delle due dita, poi lo zoom attorno al loro centro.
+      tavolo.scrollLeft -= c.x - pz.c0.x;
+      tavolo.scrollTop -= c.y - pz.c0.y;
+      pz.c0 = c;
+      if (Math.abs(nuova - scala) / scala > 0.01) zoomA(nuova, c.x, c.y);
+    }, true);
+    const togli = (e) => {
+      if (!gesto.punti.has(e.pointerId)) return;
+      gesto.punti.delete(e.pointerId);
+      gesto.dita = gesto.punti.size;
+      if (gesto.punti.size < 2) gesto.pizzico = null;
+    };
+    window.addEventListener('pointerup', togli, true);
+    window.addEventListener('pointercancel', togli, true);
+  }
+
   function campoAttivo(t) {
     return t && t.closest && t.closest('input, textarea, select, button, [contenteditable], [role="tab"], .vignetta');
   }
@@ -7951,7 +8644,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
       class: 'contorno-selezione' + (elm.bloccato ? ' bloccato' : ''),
     }));
     if (elm.bloccato) return gruppo;
-    const lato = px(12), hit = px(26);
+    const lato = px(12), hit = px(presa(26));
     [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([sx, sy]) => {
       const cx = (sx * g.l) / 2, cy = (sy * g.a) / 2;
       gruppo.append(el('rect', { x: cx - lato / 2, y: cy - lato / 2, width: lato, height: lato, rx: px(3), class: 'presa' }));
@@ -7965,14 +8658,14 @@ Vignetta.dati.guida = /* @guida-inizio */ {
         gruppo.append(el('circle', { cx: elm.coda.dx, cy: elm.coda.dy, r: px(6), class: 'presa presa-coda' }));
       }
       if (elm.coda) {
-        gruppo.append(el('circle', { cx: elm.coda.dx, cy: elm.coda.dy, r: px(16), class: 'maniglia maniglia-coda', 'data-maniglia': 'coda', 'data-el': elm.id }));
+        gruppo.append(el('circle', { cx: elm.coda.dx, cy: elm.coda.dy, r: px(presa(32) / 2), class: 'maniglia maniglia-coda', 'data-maniglia': 'coda', 'data-el': elm.id }));
       }
       // Un pallino più piccolo a metà coda: trascinandolo di lato la coda si piega.
       if (elm.coda && V.forme.codaFuori(elm.l, elm.a, elm.coda)) {
         const [mx, my] = V.forme.puntoCurva(elm.l, elm.a, elm.coda);
         const attiva = trascinamento && trascinamento.tipo === 'curva-el' && trascinamento.id === elm.id;
         gruppo.append(el('circle', { cx: mx, cy: my, r: px(4.5), class: 'presa presa-curva' + (attiva ? ' attiva' : '') }));
-        gruppo.append(el('circle', { cx: mx, cy: my, r: px(12), class: 'maniglia maniglia-curva', 'data-maniglia': 'curva', 'data-el': elm.id }));
+        gruppo.append(el('circle', { cx: mx, cy: my, r: px(presa(24) / 2), class: 'maniglia maniglia-curva', 'data-maniglia': 'curva', 'data-el': elm.id }));
       }
       if (elm.forma !== 'testo') return gruppo; // i balloon non si ruotano; il testo libero sì
     }
@@ -7980,7 +8673,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     gruppo.append(el('line', { x1: 0, y1: -g.a / 2 - m, x2: 0, y2: sopra, class: 'filo-rotazione' }));
     gruppo.append(el('circle', { cx: 0, cy: sopra, r: px(6), class: 'presa' }));
     gruppo.append(el('circle', {
-      cx: 0, cy: sopra, r: px(15), class: 'maniglia maniglia-ruota', 'data-maniglia': 'ruota', 'data-el': elm.id,
+      cx: 0, cy: sopra, r: px(presa(30) / 2), class: 'maniglia maniglia-ruota', 'data-maniglia': 'ruota', 'data-el': elm.id,
     }));
     return gruppo;
   }
@@ -7992,7 +8685,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     const m = px(4);
     g.append(el('rect', { x: r.x1 - m, y: r.y1 - m, width: r.x2 - r.x1 + 2 * m, height: r.y2 - r.y1 + 2 * m, class: 'contorno-selezione' + (gruppo.bloccato ? ' bloccato' : '') }));
     if (gruppo.bloccato) return g;
-    const lato = px(12), hit = px(26);
+    const lato = px(12), hit = px(presa(26));
     [[r.x1, r.y1, -1, -1], [r.x2, r.y1, 1, -1], [r.x2, r.y2, 1, 1], [r.x1, r.y2, -1, 1]].forEach(([cx, cy, sx, sy]) => {
       g.append(el('rect', { x: cx - lato / 2, y: cy - lato / 2, width: lato, height: lato, rx: px(3), class: 'presa' }));
       g.append(el('rect', {
@@ -8003,7 +8696,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     const cx = (r.x1 + r.x2) / 2, sopra = r.y1 - m - px(28);
     g.append(el('line', { x1: cx, y1: r.y1 - m, x2: cx, y2: sopra, class: 'filo-rotazione' }));
     g.append(el('circle', { cx, cy: sopra, r: px(6), class: 'presa' }));
-    g.append(el('circle', { cx, cy: sopra, r: px(15), class: 'maniglia maniglia-ruota', 'data-maniglia': 'ruota-gruppo', 'data-el': gruppo.id }));
+    g.append(el('circle', { cx, cy: sopra, r: px(presa(30) / 2), class: 'maniglia maniglia-ruota', 'data-maniglia': 'ruota-gruppo', 'data-el': gruppo.id }));
     return g;
   }
 
@@ -8166,7 +8859,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
 
     // Zone da trascinare: giunti tra vignette e lati liberi
     const maniglie = el('g', { class: 'maniglie solo-schermo' });
-    const zona = px(ZONA_PRESA_PX);
+    const zona = px(presa(ZONA_PRESA_PX));
     const normali = V.geometria.normali(pagina.vignette);
     giuntiCorrenti = V.geometria.trovaGiunti(normali, V.geometria.tolleranzaGiunti(progetto.pagina.spazio));
     // Le zone da trascinare seguono i lati veri: se un lato o uno spazio è inclinato, la zona si inclina con lui.
@@ -8194,7 +8887,8 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     });
 
     // Maniglie per inclinare: alle due estremità dei giunti che toccano la vignetta selezionata.
-    if (sel || (trascinamento && trascinamento.tipo === 'inclina')) {
+    // (in Semplice no: inclinare gli spazi è una funzione della modalità Completa)
+    if ((sel || (trascinamento && trascinamento.tipo === 'inclina')) && !(V.semplice && V.semplice.attivo())) {
       giuntiCorrenti.forEach((g, i) => {
         const tocca = sel && (g.prima.includes(sel.id) || g.dopo.includes(sel.id));
         const attivo = trascinamento && trascinamento.tipo === 'inclina' && trascinamento.indice === i;
@@ -8202,9 +8896,8 @@ Vignetta.dati.guida = /* @guida-inizio */ {
         ['ini', 'fin'].forEach((estremo) => {
           const c = estremoGiunto(g, estremo, perId);
           // Il pallino si vede piccolo, ma si prende in una zona più grande (28 px col mouse, 44 col dito).
-          const presa = window.matchMedia('(pointer: coarse)').matches ? 22 : 14;
           maniglie.append(
-            el('circle', { cx: c.x, cy: c.y, r: px(presa), class: 'presa-inclina', 'data-inclina': i, 'data-estremo': estremo }),
+            el('circle', { cx: c.x, cy: c.y, r: px(presa(28) / 2), class: 'presa-inclina', 'data-inclina': i, 'data-estremo': estremo }),
             el('circle', {
               cx: c.x, cy: c.y, r: px(6), class: 'maniglia-inclina' + (attivo && trascinamento.estremo === estremo ? ' attiva' : ''),
               'aria-hidden': 'true',
@@ -8214,7 +8907,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     }
 
     if (sel && sel.incastonata) {
-      const lato = px(window.matchMedia('(pointer: coarse)').matches ? 36 : 26); // zona da prendere, come per gli elementi
+      const lato = px(presa(26)); // zona da prendere, come per gli elementi
       const inclina = V.stato.modoAngoli === 'inclina';
       const punti = V.geometria.punti(sel);
       [[-1, -1, 'tl'], [1, -1, 'tr'], [1, 1, 'br'], [-1, 1, 'bl']].forEach(([sx, sy, k], i) => {
@@ -8238,13 +8931,20 @@ Vignetta.dati.guida = /* @guida-inizio */ {
       const cxr = (punti[0][0] + punti[1][0]) / 2, cyr = alto - px(26);
       maniglie.append(
         el('line', { x1: cxr, y1: alto, x2: cxr, y2: cyr, class: 'filo-rotazione' }),
-        el('circle', { cx: cxr, cy: cyr, r: px(15), class: 'maniglia maniglia-ruota', 'data-inc-ruota': sel.id, 'data-id': sel.id }),
+        el('circle', { cx: cxr, cy: cyr, r: px(presa(30) / 2), class: 'maniglia maniglia-ruota', 'data-inc-ruota': sel.id, 'data-id': sel.id }),
         el('circle', { cx: cxr, cy: cyr, r: px(6), class: 'presa' + (trascinamento && trascinamento.tipo === 'inc-ruota' ? ' attiva' : '') }));
-      const bl = Math.min(px(48), sel.l * 0.6), bh = px(window.matchMedia('(pointer: coarse)').matches ? 18 : 10);
+      const bl = Math.min(px(tocco() ? 64 : 48), sel.l * 0.6), bh = px(tocco() ? 18 : 10);
       maniglie.append(el('rect', {
         x: sel.x + sel.l / 2 - bl / 2, y: sel.y + px(6), width: bl, height: bh, rx: bh / 2,
         class: 'barra-incastonata' + (trascinamento && trascinamento.tipo === 'inc-sposta' ? ' attiva' : ''), 'data-inc-sposta': sel.id, 'data-id': sel.id,
       }));
+      if (tocco()) {
+        const zl = Math.max(bl, px(PRESA_DITO)), za = px(PRESA_DITO);
+        maniglie.append(el('rect', {
+          x: sel.x + sel.l / 2 - zl / 2, y: sel.y + px(6) + bh / 2 - za / 2, width: zl, height: za,
+          class: 'presa-invisibile', 'data-inc-sposta': sel.id, 'data-id': sel.id,
+        }));
+      }
     }
 
     // Gruppo aperto: contorno tratteggiato attorno a tutto il gruppo.
@@ -8388,9 +9088,29 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   // --- Puntatore ---
   let ultimoTocco = { id: null, tempo: 0 };
 
+  // Tolleranza per il dito: un tocco poco fuori da una maniglia o da un elemento lo prende comunque.
+  // Si guardano otto punti attorno, a 12 pixel; vince una maniglia, poi un elemento.
+  const TOLLERANZA_PX = 12;
+  function bersaglioVicino(e) {
+    const t = e.target;
+    if (!tocco() || e.pointerType === 'mouse') return t;
+    if (t.hasAttribute && (t.hasAttribute('data-maniglia') || t.hasAttribute('data-el'))) return t;
+    let elemento = null;
+    for (let k = 0; k < 8; k++) {
+      const a = (k * Math.PI) / 4;
+      const x = e.clientX + Math.cos(a) * TOLLERANZA_PX, y = e.clientY + Math.sin(a) * TOLLERANZA_PX;
+      const n = document.elementFromPoint(x, y);
+      if (!n || !svg.contains(n)) continue;
+      if (n.hasAttribute('data-maniglia')) return n;
+      if (!elemento && n.hasAttribute('data-el')) elemento = n;
+    }
+    return elemento || t;
+  }
+
   function suPressione(e) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    const t = e.target;
+    if (gesto.dita > 1) return; // con due dita la tavola si ingrandisce e si sposta: niente selezione
+    const t = bersaglioVicino(e);
     if (t.hasAttribute('data-maniglia')) {
       const quale = t.getAttribute('data-maniglia');
       const tipo = { ruota: 'ruota-el', scala: 'scala-el', ridim: 'ridim-el', coda: 'coda-el', curva: 'curva-el', 'scala-gruppo': 'scala-gr', 'ruota-gruppo': 'ruota-gr' }[quale];
@@ -8852,7 +9572,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     });
   }
 
-  V.tavola = { init, aggiorna, disegna, svgPagina, TIPO_LIBRERIA, zoom, lettering };
+  V.tavola = { init, aggiorna, disegna, svgPagina, TIPO_LIBRERIA, zoom, lettering, gesto: () => ({ dita: gesto.dita, pizzico: !!gesto.pizzico }) };
 })(window.Vignetta);
 
 </script>
@@ -8876,6 +9596,9 @@ Vignetta.dati.guida = /* @guida-inizio */ {
       else e.setAttribute(k, v === true ? '' : v);
     }
     figli.flat(Infinity).forEach((f) => e.append(f instanceof Node ? f : document.createTextNode(String(f))));
+    // Un comando con un nome (data-comando) si segna se la modalità Semplice lo mostra (dati/modo-semplice.js).
+    const comando = attributi && attributi['data-comando'];
+    if (comando && V.dati.modoSemplice && V.dati.modoSemplice.visibili.includes(comando)) e.setAttribute('data-in-semplice', '');
     return e;
   }
 
@@ -8883,7 +9606,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   // Lo stato aperto/chiuso di ogni sezione si ricorda tra una sessione e l'altra.
   function fisarmonica(chiave, titolo, conteggio, contenuto, apertaPredefinita) {
     const stati = V.preferenze.leggi('fisarmonica', {});
-    const d = h('details', { class: 'fisarmonica', 'data-chiave': chiave });
+    const d = h('details', { class: 'fisarmonica', 'data-chiave': chiave, 'data-comando': chiave });
     d.open = chiave in stati ? !!stati[chiave] : !!apertaPredefinita;
     const s = h('summary', {}, h('span', { class: 'fisarmonica-titolo' }, titolo), h('span', { class: 'fisarmonica-conteggio' }, String(conteggio)));
     s.insertAdjacentHTML('afterbegin', V.icona('apri'));
@@ -8922,6 +9645,20 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     clearTimeout(timerAvviso);
     // Con un comando resta di più, e i testi lunghi restano il tempo di leggerli.
     timerAvviso = setTimeout(() => a.classList.remove('visibile'), comando ? Math.max(9000, testo.length * 65) : 2400);
+  }
+
+  // Un avviso che aspetta la fine di quello che si sta leggendo, così nessuno dei due si perde.
+  const coda = [];
+  function avvisoInCoda(testo, comando) {
+    coda.push([testo, comando]);
+    if (coda.length === 1) prossimoInCoda();
+  }
+  function prossimoInCoda() {
+    if (!coda.length) return;
+    if ($('avviso').classList.contains('visibile')) { setTimeout(prossimoInCoda, 600); return; }
+    const [testo, comando] = coda.shift();
+    avviso(testo, comando);
+    if (coda.length) setTimeout(prossimoInCoda, 600);
   }
 
   // --- Annulla e ripeti ---
@@ -9097,7 +9834,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
         h('dt', {}, t('proprieta.altezza')), h('dd', { id: 'pr-a' })),
       gruppoImmagine(vignettaSelezionata()),
       gruppoScena(),
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'vignetta-bordo' },
         h('p', { class: 'gruppo-titolo' }, t('proprieta.bordo')),
         h('label', { class: 'campo', for: 'pr-spessore' },
           h('span', { class: 'campo-nome' }, t('proprieta.spessore'), ' ', h('output', { id: 'pr-spessore-val', for: 'pr-spessore' }))),
@@ -9194,7 +9931,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
 
   function gruppoImmagine(v) {
     if (!v || !v.immagine) {
-      return h('div', { class: 'gruppo' },
+      return h('div', { class: 'gruppo', 'data-comando': 'vignetta-foto' },
         h('p', { class: 'gruppo-titolo' }, t('proprieta.immagine')),
         btnIcona('immagine', { id: 'pr-inserisci', class: 'btn btn-principale', onclick: scegliImmagini }, t('proprieta.inserisciImmagine')),
         h('p', { class: 'aiuto' }, t('proprieta.aiutoImmagine')));
@@ -9216,7 +9953,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     });
     const adatta = (modo) => suImmagine(t('azioni.adattaImmagine'), (x) => V.immagini.adatta(x, modo));
 
-    return h('div', { class: 'gruppo' },
+    return h('div', { class: 'gruppo', 'data-comando': 'vignetta-foto' },
       h('p', { class: 'gruppo-titolo' }, t('proprieta.immagine')),
       h('p', { class: 'nome-file', id: 'pr-nome-immagine' }),
       h('label', { class: 'campo', for: 'pr-zoom' },
@@ -9757,7 +10494,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     }
   }
 
-  V.interfaccia = { init, avviso, scegliImmagini, pannelloAperto, mostraPannello, aggiungiVignettaLibera };
+  V.interfaccia = { init, avviso, avvisoInCoda, scegliImmagini, pannelloAperto, mostraPannello, aggiungiVignettaLibera };
 })(window.Vignetta);
 
 </script>
@@ -9808,7 +10545,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
       onclick: () => modifica(V.azioneElemento('allinea'), (elm) => { if (!elm.bloccato) V.elementi.allinea(elm, modo); }),
     });
     return [
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'elemento-livelli' },
         h('p', { class: 'gruppo-titolo' }, t('proprieta.livelli')),
         h('div', { class: 'griglia-pulsanti' },
           livello('fondo', 'in-fondo', 'inFondo'),
@@ -9934,7 +10671,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
 
       gruppiComuni(),
 
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'elemento-elimina' },
         h('button', { type: 'button', class: 'btn btn-allineato', id: 'el-in-vignetta', onclick: V.elementi.mettiNellaVignetta }, t('proprieta.mettiNellaVignetta')),
         h('p', { class: 'aiuto', id: 'el-in-vignetta-aiuto' }),
         btnIcona('elimina', { class: 'btn btn-elimina', onclick: V.elementi.eliminaSelezionato }, t('proprieta.eliminaImmagine')),
@@ -9996,7 +10733,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
         btnIcona('separa', { class: 'btn btn-allineato', onclick: V.elementi.separa }, t('gruppi.separa')),
         h('p', { class: 'aiuto' }, t('gruppi.aiutoGruppo'))),
       gruppiComuni(),
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'elemento-elimina' },
         btnIcona('elimina', { class: 'btn btn-elimina', onclick: V.elementi.eliminaSelezionato }, t('gruppi.eliminaGruppo'))));
   }
 
@@ -10123,7 +10860,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     const { h, btnIcona } = V.ui;
     return [
       P().gruppiComuni(),
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'elemento-elimina' },
         btnIcona('elimina', { class: 'btn btn-elimina', onclick: V.elementi.eliminaSelezionato }, t(chiaveElimina)),
         h('p', { class: 'aiuto' }, t(chiaveAiuto))),
     ];
@@ -10153,12 +10890,12 @@ Vignetta.dati.guida = /* @guida-inizio */ {
 
     return h('div', {},
       intestazione('proprieta.balloon'),
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'balloon-tipo' },
         h('p', { class: 'gruppo-titolo' }, t('proprieta.tipoBalloon')),
         scelte('bl-forma', FORME_BALLOON, 'catalogo.balloon.', b.forma, cambiaForma),
         campoPersonaggio(b)),
 
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'balloon-testo' },
         h('p', { class: 'gruppo-titolo' }, t('proprieta.testo')),
         btnIcona('testo', { class: 'btn btn-principale', onclick: () => V.modificaTesto.apri(b.id) }, t('proprieta.modificaTesto')),
         campoFont(b),
@@ -10180,7 +10917,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
         }),
         h('p', { class: 'aiuto' }, t('collegati.aiuto'))) : '',
 
-      b.forma === 'narratore' ? '' : h('div', { class: 'gruppo' },
+      b.forma === 'narratore' ? '' : h('div', { class: 'gruppo', 'data-comando': 'balloon-coda' },
         h('p', { class: 'gruppo-titolo' }, t('proprieta.coda')),
         b.coda
           ? h('button', { type: 'button', class: 'btn btn-allineato', onclick: () => modifica(t('azioni.coda'), (elm) => { elm.coda = null; }) }, t('proprieta.togliCoda'))
@@ -10188,7 +10925,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
         ...(b.coda ? cursoreCurva() : []),
         h('p', { class: 'aiuto' }, t('proprieta.aiutoCoda'))),
 
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'balloon-colori' },
         h('p', { class: 'gruppo-titolo' }, t('proprieta.colori')),
         colore('bl-sfondo', t('proprieta.coloreFondo'), t('azioni.colore'), (elm, v) => { elm.colori.sfondo = v; }),
         colore('bl-bordo', t('proprieta.coloreBordo'), t('azioni.colore'), (elm, v) => { elm.colori.bordo = v; }),
@@ -10211,7 +10948,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     maiuscolo.addEventListener('change', () => modifica(t('azioni.maiuscolo'), (elm) => { elm.maiuscolo = maiuscolo.checked; }));
     return h('div', {},
       intestazione('proprieta.testoLibero'),
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'balloon-testo' },
         h('p', { class: 'gruppo-titolo' }, t('proprieta.testo')),
         btnIcona('testo', { class: 'btn btn-principale', onclick: () => V.modificaTesto.apri(b.id) }, t('proprieta.modificaTesto')),
         campoFont(b),
@@ -10223,7 +10960,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
         scelte('bl-allineamento', ['centro', 'sinistra'], 'proprieta.allinea_', b.allineamento,
           (v) => modifica(t('azioni.allineamentoTesto'), (elm) => { elm.allineamento = v; })),
         h('button', { type: 'button', class: 'btn btn-allineato', id: 'bl-adatta', onclick: () => modifica(t('azioni.adattaBalloon'), V.balloon.adattaAlTesto) }, t('proprieta.adattaTesto'))),
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'balloon-colori' },
         h('p', { class: 'gruppo-titolo' }, t('proprieta.colori')),
         colore('bl-testo', t('proprieta.coloreTesto'), t('azioni.colore'), (elm, v) => { elm.colori.testo = v; }),
         P().campo('el-spessore', t('proprieta.contornoLettere')), contorno,
@@ -10699,6 +11436,24 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   // (in mm) o al centro della pagina.
   function lasciaSullaPagina(chiave, punto) {
     if (!chiave) return;
+    // Nel modo tocco, una foto toccata con una vignetta selezionata va dentro la vignetta: così non serve trascinarla.
+    const vignetta = !punto && V.tocco && V.tocco.attivo() && V.paginaAttiva().vignette.find((x) => x.id === V.stato.selezione);
+    if (vignetta && !chiave.startsWith('n:')) {
+      if (chiave.startsWith('a:')) {
+        const voce = V.archivio.voce(chiave.slice(2));
+        if (voce) {
+          V.storia.esegui(V.t('azioni.inserisciImmagine'), (p) => {
+            const v = p.pagine[V.stato.paginaCorrente].vignette.find((x) => x.id === vignetta.id);
+            v.immagine = { id: voce.id, dx: 0, dy: 0, larghezza: 1, rotazione: 0 };
+            V.immagini.adatta(v, 'riempi');
+          });
+        }
+      } else {
+        const voce = voci.find((v) => v.chiave === chiave);
+        if (voce) V.immagini.inserisciNelleVignette([voce.file], vignetta.id);
+      }
+      return;
+    }
     if (chiave.startsWith('n:')) {          // balloon, effetti e forme dal catalogo
       V.balloon.aggiungi(chiave.slice(2), punto);
     } else if (chiave.startsWith('a:')) {
@@ -10808,6 +11563,8 @@ Vignetta.dati.guida = /* @guida-inizio */ {
       voci.forEach((voce) => {
         const b = h('button', {
           type: 'button', class: 'scheda-modello scheda-catalogo', draggable: 'true',
+          // I balloon meno comuni restano per la modalità Completa.
+          'data-comando': ['balloon:elettronico', 'balloon:squadrato', 'balloon:testo'].includes(voce) ? 'catalogo-balloon-avanzati' : null,
           onclick: () => V.balloon.aggiungi(voce),
         },
         anteprima(voce),
@@ -10849,9 +11606,65 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     return !!corrente && corrente.id === id;
   }
 
+  // --- Tastiera sullo schermo (tablet) ---
+  // Quando la tastiera copre la parte bassa dello schermo, la «finestra visibile» (visualViewport) si accorcia.
+  // Se il balloon in modifica finisce sotto la tastiera, il foglio sale quanto basta; nel modo tocco un
+  // pulsante «Fatto» grande resta sempre appena sopra la tastiera.
+  const SPAZIO_SOPRA_TASTIERA = 76; // pixel lasciati liberi per la barretta del balloon e per «Fatto»
+  let spostamento = 0;
+  let fattoTastiera = null;
+
+  function bassoVisibile() {
+    const vv = window.visualViewport;
+    return vv ? vv.offsetTop + vv.height : window.innerHeight;
+  }
+  const tastieraAperta = () => window.innerHeight - bassoVisibile() > 80;
+
+  function adattaAllaTastiera() {
+    const foglio = $('foglio');
+    if (!corrente || !foglio) return;
+    const basso = bassoVisibile();
+    const r = corrente.campo.getBoundingClientRect();
+    if (tastieraAperta()) {
+      const troppo = r.bottom - (basso - SPAZIO_SOPRA_TASTIERA);
+      // Il foglio sale (mai più di quanto serve a lasciare in vista l'alto del campo).
+      if (troppo > 0) spostamento = Math.min(spostamento + troppo, spostamento + Math.max(0, r.top - 64));
+      else if (spostamento && troppo < -40) spostamento = Math.max(0, spostamento + troppo + 40);
+    } else {
+      spostamento = 0;
+    }
+    foglio.style.transform = spostamento ? `translateY(${-Math.round(spostamento)}px)` : '';
+    posiziona(true);
+    if (fattoTastiera) {
+      fattoTastiera.hidden = !(V.tocco && V.tocco.attivo());
+      fattoTastiera.style.top = Math.round(basso - 56) + 'px';
+    }
+  }
+
+  function collegaTastiera() {
+    const vv = window.visualViewport;
+    if (vv) { vv.addEventListener('resize', adattaAllaTastiera); vv.addEventListener('scroll', adattaAllaTastiera); }
+    const { btnIcona } = V.ui;
+    fattoTastiera = btnIcona('fatto', { class: 'btn btn-principale fatto-tastiera', hidden: true }, t('modifica.fatto'));
+    fattoTastiera.addEventListener('pointerdown', (e) => e.preventDefault()); // il campo resta aperto fino al clic
+    fattoTastiera.addEventListener('click', () => chiudi(true));
+    document.body.append(fattoTastiera);
+    adattaAllaTastiera();
+  }
+
+  function scollegaTastiera() {
+    const vv = window.visualViewport;
+    if (vv) { vv.removeEventListener('resize', adattaAllaTastiera); vv.removeEventListener('scroll', adattaAllaTastiera); }
+    if (fattoTastiera) { fattoTastiera.remove(); fattoTastiera = null; }
+    spostamento = 0;
+    const foglio = $('foglio');
+    if (foglio) foglio.style.transform = '';
+  }
+
   // Posiziona il campo sull'area del testo (in pixel di schermo).
-  function posiziona() {
+  function posiziona(daTastiera) {
     if (!corrente) return;
+    if (!daTastiera && fattoTastiera) { adattaAllaTastiera(); return; }
     const elm = elementoDi(corrente.id);
     if (!elm) { chiudi(false); return; }
     const { o, imp } = V.balloon.impaginazione(elm);
@@ -10924,6 +11737,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
       if (corrente && sel.rangeCount && campo.contains(sel.anchorNode)) corrente.intervallo = sel.getRangeAt(0).cloneRange();
       chiudiSeFuori(campo);
     });
+    collegaTastiera();
     aggiornaBarra();
   }
 
@@ -10972,6 +11786,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     if (!corrente) return;
     const { id, campo, originale } = corrente;
     corrente = null;
+    scollegaTastiera();
     const nuovi = V.testo.daHtml(campo);
     campo.remove();
     if (salva !== false && JSON.stringify(nuovi) !== originale) {
@@ -12765,6 +13580,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
           h('progress', { id: 'esp-barra', max: '1', value: '0' }),
           h('span', { id: 'esp-stato' })),
         h('div', { class: 'fila-pulsanti esp-azioni' },
+          h('button', { type: 'button', class: 'btn-link solo-esporta-semplice', id: 'esp-altre', onclick: altreOpzioni }, t('semplice.altreOpzioni')),
           h('button', { type: 'button', class: 'btn', id: 'esp-annulla', onclick: chiudi }, t('esporta.annulla')),
           V.ui.btnIcona('esporta', { class: 'btn btn-principale', id: 'esp-vai', onclick: esegui }, t('esporta.esporta')))));
     dialogo.addEventListener('cancel', (e) => { if (lavoro) { e.preventDefault(); lavoro.annullato = true; } });
@@ -12772,15 +13588,40 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     document.body.append(dialogo);
   }
 
+  // --- In Semplice: un solo pulsante «Crea il PDF», con le scelte di dati/modo-semplice.js ---
+  let scelteCompleta = null; // le scelte di prima, che tornano quando si riapre in Completa
+  function modoSemplice(attivo) {
+    dialogo.classList.toggle('esporta-semplice', attivo);
+    dialogo.querySelector('#esp-vai span').textContent = t(attivo ? 'semplice.creaPdf' : 'esporta.esporta');
+    let nota = dialogo.querySelector('.esp-semplice-testo');
+    if (!nota) {
+      nota = V.ui.h('p', { class: 'esp-semplice-testo solo-esporta-semplice' }, t('semplice.esportaSemplice'));
+      dialogo.querySelector('.dialogo-testa').after(nota);
+    }
+  }
+  function altreOpzioni() {
+    modoSemplice(false);
+    aggiornaDialogo();
+  }
+
   function apri() {
     if (V.modificaTesto) V.modificaTesto.chiudi(true);
     if (!dialogo) costruisciDialogo();
+    const semplice = !!(V.semplice && V.semplice.attivo());
+    if (semplice) {
+      if (!scelteCompleta) scelteCompleta = Object.assign({}, scelte);
+      Object.assign(scelte, V.dati.modoSemplice.esporta);
+    } else if (scelteCompleta) {
+      Object.assign(scelte, scelteCompleta);
+      scelteCompleta = null;
+    }
+    modoSemplice(semplice);
     const quante = V.stato.progetto.pagine.length;
     scelte.da = 1;
     scelte.a = quante;
     dialogo.querySelector('#esp-da').value = '1';
     dialogo.querySelector('#esp-a').value = String(quante);
-    if (V.stato.progetto.formato === 'webtoon' && !apri.giaAperto) scegliFormato('webtoon');
+    if (V.stato.progetto.formato === 'webtoon' && !apri.giaAperto && !semplice) scegliFormato('webtoon');
     apri.giaAperto = true;
     aggiornaDialogo();
     dialogo.showModal();
@@ -13721,6 +14562,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   const TAPPE = [
     { chiave: 'tavola', zona: () => [$('tavolo')], prepara: () => chiudiCassetti() },
     { chiave: 'modelli', zona: () => [$('pannello-sx')], prepara: () => { V.interfaccia.mostraPannello('sx'); $('scheda-modelli').click(); } },
+    { chiave: 'immagini', soloSemplice: true, zona: () => [$('pannello-sx')], prepara: () => { V.interfaccia.mostraPannello('sx'); $('scheda-libreria').click(); } },
     { chiave: 'balloon', zona: () => [$('pannello-sx')], prepara: () => { V.interfaccia.mostraPannello('sx'); $('scheda-catalogo').click(); } },
     { chiave: 'proprieta', zona: () => [$('pannello-dx')], prepara: () => { V.interfaccia.mostraPannello('dx'); $('scheda-proprieta').click(); } },
     { chiave: 'guida', zona: () => [$('pannello-dx')], prepara: () => { V.interfaccia.mostraPannello('dx'); $('scheda-guida').click(); } },
@@ -13729,7 +14571,21 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     { chiave: 'impostazioni', zona: () => [$('btn-impostazioni')], prepara: () => chiudiCassetti() },
   ];
 
-  let tour = null; // { passo, velo, faro, nuvola, primaFuoco }
+  let tour = null; // { passo, velo, faro, nuvola, primaFuoco, tappe }
+
+  // In Semplice il tour breve parla solo di ciò che si vede (dati/modo-semplice.js); in Completa tutte le
+  // tappe di sempre. I testi con il suffisso «Semplice», se ci sono, sostituiscono quelli di sempre.
+  const semplice = () => !!(V.semplice && V.semplice.attivo());
+  const tappeOra = () => (semplice()
+    ? V.dati.modoSemplice.tour.map((k) => TAPPE.find((x) => x.chiave === k)).filter(Boolean)
+    : TAPPE.filter((x) => !x.soloSemplice));
+  function testo(chiave, parte) {
+    if (semplice()) {
+      const k = `tour.${chiave}Semplice.${parte}`;
+      if (t(k) !== k) return t(k);
+    }
+    return t(`tour.${chiave}.${parte}`);
+  }
 
   function chiudiCassetti() {
     $('app').classList.remove('cassetto-sx', 'cassetto-dx');
@@ -13745,7 +14601,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     const nuvola = h('div', { class: 'tour-nuvola', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'tour-titolo', 'aria-describedby': 'tour-testo' });
     velo.addEventListener('click', (e) => { if (e.target === velo) vai(1); });
     document.body.append(velo, faro, nuvola);
-    tour = { passo: 0, velo, faro, nuvola, primaFuoco: document.activeElement };
+    tour = { passo: 0, velo, faro, nuvola, primaFuoco: document.activeElement, tappe: tappeOra() };
     document.addEventListener('keydown', tasti, true);
     window.addEventListener('resize', posiziona);
     mostraPasso();
@@ -13781,20 +14637,20 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     if (!tour) return;
     const prossimo = tour.passo + verso;
     if (prossimo < 0) return;
-    if (prossimo >= TAPPE.length) { chiudiTour(); return; }
+    if (prossimo >= tour.tappe.length) { chiudiTour(); return; }
     tour.passo = prossimo;
     mostraPasso();
   }
 
   function mostraPasso() {
     const { h } = V.ui;
-    const tappa = TAPPE[tour.passo];
+    const tappa = tour.tappe[tour.passo];
     tappa.prepara();
-    const ultimo = tour.passo === TAPPE.length - 1;
+    const ultimo = tour.passo === tour.tappe.length - 1;
     tour.nuvola.replaceChildren(
-      h('p', { class: 'tour-contatore' }, t('tour.contatore', { n: tour.passo + 1, di: TAPPE.length })),
-      h('h2', { class: 'tour-titolo', id: 'tour-titolo' }, t('tour.' + tappa.chiave + '.titolo')),
-      h('p', { class: 'tour-testo', id: 'tour-testo' }, t('tour.' + tappa.chiave + '.testo')),
+      h('p', { class: 'tour-contatore' }, t('tour.contatore', { n: tour.passo + 1, di: tour.tappe.length })),
+      h('h2', { class: 'tour-titolo', id: 'tour-titolo' }, testo(tappa.chiave, 'titolo')),
+      h('p', { class: 'tour-testo', id: 'tour-testo' }, testo(tappa.chiave, 'testo')),
       h('div', { class: 'tour-pulsanti' },
         h('button', { type: 'button', class: 'btn tour-salta', onclick: chiudiTour }, t('tour.salta')),
         h('span', { class: 'tour-spinta' }),
@@ -13809,7 +14665,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   // Il faro intorno alla zona e la nuvoletta accanto, dove c'è più spazio.
   function posiziona() {
     if (!tour) return;
-    const zone = TAPPE[tour.passo].zona().filter((z) => z && z.getClientRects().length);
+    const zone = tour.tappe[tour.passo].zona().filter((z) => z && z.getClientRects().length);
     const W = window.innerWidth, H = window.innerHeight, margine = 8;
     let r;
     if (zone.length) {
@@ -14304,14 +15160,20 @@ Vignetta.dati.guida = /* @guida-inizio */ {
 
   const utf8 = new TextEncoder();
 
-  async function esporta(progetto, anteprima) {
+  // «fonti» dice dove prendere foto e font: di solito il fumetto aperto (archivio e font registrati);
+  // per il recupero e per «Scarica tutti» l'archivio del browser, senza aprire il fumetto.
+  //   fonti = { immagine(id) → { nome, tipo, larghezza, altezza, originale, anteprima } | null,
+  //             font(codice) → { nome, famiglia, tipo, dati } | null }
+  async function esporta(progetto, anteprima, fonti) {
+    const prendiImmagine = fonti && fonti.immagine ? fonti.immagine : (id) => V.archivio.voce(id);
+    const prendiFont = fonti && fonti.font ? fonti.font : (codice) => V.font.recDi(codice);
     const voci = [];
     const immagini = [];
     // Una foto che il browser non riesce più a leggere non deve bloccare il salvataggio: si prova la copia
     // ridotta e, se manca anche quella, la foto si salta. Le foto in difficoltà si segnalano dopo.
     const ridotte = [], saltate = [];
     for (const id of immaginiUsate(progetto)) {
-      const voce = V.archivio.voce(id);
+      const voce = prendiImmagine(id);
       if (!voce) { saltate.push(id); continue; }
       let dati = null, tipo = voce.tipo;
       try { dati = new Uint8Array(await voce.originale.arrayBuffer()); } catch (e) { dati = null; }
@@ -14326,7 +15188,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     // Font aggiunti dall'utente e usati dal fumetto: viaggiano con il file.
     const font = [];
     for (const codice of V.font.usatiDa(progetto)) {
-      const rec = V.font.recDi(codice);
+      const rec = prendiFont(codice);
       if (!rec) continue;
       const est = (/\.(ttf|otf|woff2?)$/i.exec(rec.dati.name || '') || [])[1] || ({ 'font/woff2': 'woff2', 'font/woff': 'woff', 'font/otf': 'otf' }[rec.tipo] || 'ttf');
       const percorso = `font/${codice}.${est.toLowerCase()}`;
@@ -14375,14 +15237,16 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     for (const im of contenuto.immagini || []) {
       const dati = await zip.dati(im.file);
       if (!dati) continue;
-      immagini.push({ id: im.id, nome: im.nome, tipo: im.tipo, originale: new Blob([dati], { type: im.tipo }) });
+      immagini.push({ id: im.id, nome: im.nome, tipo: im.tipo, larghezza: im.larghezza, altezza: im.altezza, originale: new Blob([dati], { type: im.tipo }) });
     }
     const font = [];
     for (const f of contenuto.font || []) {
       const dati = await zip.dati(f.file);
       if (dati) font.push({ id: f.id, nome: f.nome, famiglia: f.famiglia, tipo: f.tipo, dati: new Blob([dati], { type: f.tipo }) });
     }
-    return { progetto, immagini, font, salvato: contenuto.salvato || null };
+    const prima = await zip.dati('anteprima.png');
+    const anteprima = prima ? new Blob([prima], { type: 'image/png' }) : null;
+    return { progetto, immagini, font, salvato: contenuto.salvato || null, anteprima };
   }
 
   V.formatoFile = { FORMATO, ESTENSIONE, TIPO_MIME, migra, immaginiUsate, esporta, importa };
@@ -14412,6 +15276,8 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     creato: null,
     file: null,               // { maniglia, nome, salvato } dell'ultimo file .vgn
     nonSalvatoDa: null,       // prima modifica non ancora salvata su file (ISO)
+    ultimaModifica: null,     // ultima modifica vera del fumetto (ISO), per sapere se una copia è aggiornata
+    copia: null,              // { quando, modo } dell'ultima copia di sicurezza o «Salva una copia»
     salvateImmagini: new Set(),
     ultimoJson: null,
     ultimaVersione: 0,
@@ -14438,14 +15304,16 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     V.annuncia('cambiato');
   }
 
-  function nuovoInMemoria(iniziale, formato, stile) {
+  // «opzioni.modello»: la prima pagina con quel modello invece del primo del formato («Crea in 3 passi»).
+  function nuovoInMemoria(iniziale, formato, stile, opzioni) {
     const progetto = V.modello.nuovoProgetto(formato);
+    if (opzioni && opzioni.modello) progetto.pagine[0] = V.modello.nuovaPagina(progetto.pagina, opzioni.modello, 0);
     progetto.titolo = t('progetti.senzaTitolo');
     if ((V.dati.formatiFumetto.find((f) => f.id === progetto.formato) || {}).titolo) aggiungiTitoloCopertina(progetto);
     V.stili.applicaA(progetto, stile || V.dati.stilePerFormato[progetto.formato] || V.dati.stilePredefinito);
     V.archivio.svuota();
     Object.assign(stato, {
-      id: progetto.id, creato: new Date().toISOString(), file: null, nonSalvatoDa: null,
+      id: progetto.id, creato: new Date().toISOString(), file: null, nonSalvatoDa: null, ultimaModifica: null, copia: null,
       salvateImmagini: new Set(), ultimoJson: null, ultimaVersione: Date.now(), anteprima: null,
     });
     impostaProgetto(progetto, iniziale);
@@ -14474,10 +15342,12 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     await V.font.caricaPerProgetto(id);
     Object.assign(stato, {
       id, creato: rec.creato, file: rec.file || null, nonSalvatoDa: rec.nonSalvatoDa || null,
+      ultimaModifica: rec.ultimaModifica || rec.modificato || null, copia: rec.copia || null,
       salvateImmagini: new Set(immagini.map((r) => r.id)), ultimoJson: rec.json, ultimaVersione: Date.now(),
       anteprima: rec.anteprima || null,
     });
     impostaProgetto(progetto, iniziale);
+    V.annuncia('aperto', { progetto, iniziale: !!iniziale });
     V.deposito.impostaImpostazione('ultimoProgetto', id).catch(() => {});
     pulisciImmagini(id, progetto).catch(() => {});
     return true;
@@ -14491,10 +15361,8 @@ Vignetta.dati.guida = /* @guida-inizio */ {
         const ultimo = await V.deposito.impostazione('ultimoProgetto');
         if (ultimo && (await carica(ultimo, true))) {
           // L'ultima volta si è chiuso senza salvare su file: lo si ricorda subito, con il comando a portata.
-          if (stato.nonSalvatoDa) {
-            setTimeout(() => V.interfaccia.avviso(t(stato.file ? 'progetti.riapertoModificato' : 'progetti.riapertoMai'),
-              { etichetta: t('progetti.salvaOra'), azione: () => salvaSuFile(false) }), 1800);
-          }
+          // Il promemoria è uno solo per fumetto e per sessione: lo gestisce stato-lavoro.js.
+          if (stato.nonSalvatoDa) setTimeout(() => V.statoLavoro.promemoria('riapertura'), 1800);
           return;
         }
         const elenco = await V.deposito.elencoProgetti();
@@ -14563,9 +15431,11 @@ Vignetta.dati.guida = /* @guida-inizio */ {
           stato.ultimaMiniatura = Date.now();
         }
         if (stato.ultimoJson !== null && !stato.nonSalvatoDa) stato.nonSalvatoDa = ora.toISOString();
+        if (stato.ultimoJson !== null || !stato.ultimaModifica) stato.ultimaModifica = ora.toISOString();
         await V.deposito.scriviProgetto({
           id: stato.id, titolo: progetto.titolo, creato: stato.creato || ora.toISOString(), modificato: ora.toISOString(),
           json, anteprima: stato.anteprima, file: stato.file, nonSalvatoDa: stato.nonSalvatoDa,
+          ultimaModifica: stato.ultimaModifica, copia: stato.copia,
         });
         if (stato.ultimoJson && Date.now() - stato.ultimaVersione > OGNI_VERSIONE) {
           await V.deposito.aggiungiVersione(stato.id, json);
@@ -14600,9 +15470,9 @@ Vignetta.dati.guida = /* @guida-inizio */ {
 
   // --- I miei fumetti ---
 
-  async function nuovo(formato, stile) {
+  async function nuovo(formato, stile, opzioni) {
     await salvaOra();
-    nuovoInMemoria(false, formato, stile);
+    nuovoInMemoria(false, formato, stile, opzioni);
     await salvaOra();
   }
 
@@ -14834,10 +15704,15 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     for (const im of immagini) {
       try { await V.archivio.aggiungiConId(im.id, im.originale, im.nome, im.tipo); } catch (e) { /* foto illeggibile */ }
     }
+    // I font del file si registrano prima del primo salvataggio nel browser: così la copia nel browser
+    // li contiene subito, anche se si chiude senza fare modifiche.
+    const fontNuovi = await V.font.daFileProgetto(font, { silenzioso: true });
+    const ora = new Date().toISOString();
     Object.assign(stato, {
-      id: progetto.id, creato: (esistente && esistente.creato) || new Date().toISOString(),
-      file: { maniglia: maniglia || null, nome: file.name, salvato: new Date().toISOString() },
-      nonSalvatoDa: null, salvateImmagini: new Set(), ultimoJson: null, ultimaVersione: Date.now(), anteprima: null,
+      id: progetto.id, creato: (esistente && esistente.creato) || ora,
+      file: { maniglia: maniglia || null, nome: file.name, salvato: ora },
+      nonSalvatoDa: null, ultimaModifica: ora, copia: (esistente && esistente.copia) || null,
+      salvateImmagini: new Set(), ultimoJson: null, ultimaVersione: Date.now(), anteprima: null,
     });
     if (progetto.titolo === t('progetti.senzaTitolo')) {
       const dalNome = file.name.replace(/\.(vgn|zip)$/i, '').trim();
@@ -14848,7 +15723,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     if (stato.disponibile) V.deposito.impostaImpostazione('ultimoProgetto', progetto.id).catch(() => {});
     V.annuncia('file');
     V.interfaccia.avviso(t('progetti.aperto', { nome: file.name }));
-    await V.font.daFileProgetto(font);
+    V.annuncia('aperto', { progetto, iniziale: false, fontNuovi });
     return true;
   }
 
@@ -14863,7 +15738,35 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     return minuti >= soglia ? minuti : null;
   }
 
+  // --- Dove si trova il lavoro: tre livelli ---
+  // 'file': tutto è nel file .vgn; 'copia': l'ultima copia (di sicurezza o «Salva una copia») contiene
+  // tutte le modifiche; 'browser': le ultime modifiche sono solo nell'archivio di questo browser;
+  // 'nessuno': il browser non salva da solo.
+  function livello() {
+    if (!stato.disponibile) return { livello: 'nessuno', file: stato.file, copia: stato.copia };
+    if (stato.file && !stato.nonSalvatoDa) return { livello: 'file', ora: stato.file.salvato, file: stato.file, copia: stato.copia };
+    if (stato.copia && (!stato.ultimaModifica || stato.copia.quando >= stato.ultimaModifica)) {
+      return { livello: 'copia', ora: stato.copia.quando, modo: stato.copia.modo, file: stato.file, copia: stato.copia };
+    }
+    return { livello: 'browser', file: stato.file, copia: stato.copia, da: stato.nonSalvatoDa };
+  }
+
+  // Una copia completa del fumetto aperto è stata fatta (cartella di sicurezza, scaricata o condivisa).
+  // «inizio» è il momento in cui la copia è stata preparata: le modifiche salvate dopo non ci sono,
+  // e allora la copia non conta più come aggiornata.
+  async function segnaCopia(modo, inizio) {
+    stato.copia = { quando: inizio || new Date().toISOString(), modo };
+    if (stato.disponibile) {
+      try {
+        const rec = await V.deposito.leggiProgetto(stato.id);
+        if (rec) await V.deposito.scriviProgetto(Object.assign(rec, { copia: stato.copia }));
+      } catch (e) { /* resta in memoria per questa sessione */ }
+    }
+    V.annuncia('file');
+  }
+
   V.progetti = {
+    livello, segnaCopia, nomeFile,
     avvio, collega, salvaOra, nuovo, apri, duplica, rinomina, elimina, elenco, versioni, ripristina, scaricaVersione,
     preparaFile: () => prepara(),
     salvaSuFile, apriFile, apriBlob, sembraProgetto, promemoria,
@@ -14919,25 +15822,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     campo.addEventListener('blur', () => chiudi(true));
   }
 
-  // --- Stato del salvataggio e promemoria ---
-  function aggiornaStato(info) {
-    const s = $('stato-salvataggio');
-    if (!V.progetti.disponibile()) {
-      s.textContent = t('progetti.soloMemoria');
-      s.title = t('progetti.soloMemoriaAiuto');
-      s.classList.add('problema');
-      return;
-    }
-    if (info && info.errore) {
-      s.textContent = t('progetti.salvataggioNonRiuscito');
-      s.classList.add('problema');
-      return;
-    }
-    s.classList.remove('problema');
-    s.textContent = t('progetti.salvatoNelBrowser');
-    s.title = info && info.quando ? t('progetti.salvatoAlle', { ora: data(info.quando.toISOString()) }) : '';
-    aggiornaPromemoria();
-  }
+  // --- Promemoria (lo stato del salvataggio nella barra lo disegna stato-lavoro.js) ---
 
   function aggiornaPromemoria() {
     const minuti = V.progetti.promemoria();
@@ -14959,9 +15844,20 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     $('dialogo-progetti').showModal();
   }
 
+  // Spazio usato dall'archivio del browser e, se serve, l'avviso che il browser potrebbe cancellarlo.
+  async function disegnaSpazio() {
+    const riga = $('spazio-progetti');
+    if (!riga) return;
+    if (!V.progetti.disponibile()) { riga.textContent = ''; return; }
+    const a = await V.copie.archiviazione();
+    riga.textContent = [V.copie.testoSpazio(a), a.persistente === false ? t('stato.archivioNonPersistente') : ''].filter(Boolean).join(' ');
+    riga.classList.toggle('problema', a.persistente === false);
+  }
+
   async function disegnaElenco() {
     const { h, btnIcona } = V.ui;
     urlAnteprime.splice(0).forEach((u) => URL.revokeObjectURL(u));
+    disegnaSpazio();
     const griglia = $('elenco-progetti');
     const elenco = await V.progetti.elenco();
     const aperto = V.progetti.idAperto();
@@ -15060,8 +15956,14 @@ Vignetta.dati.guida = /* @guida-inizio */ {
         h('div', { class: 'fila-pulsanti' },
           btnIcona('nuovo', { class: 'btn btn-principale', onclick: () => { dialogo.close(); V.schermataIniziale.apri(); } }, t('progetti.nuovo')),
           btnIcona('cartella', { class: 'btn', onclick: async () => { dialogo.close(); await V.progetti.apriFile(); } }, t('progetti.apriFile')),
-          btnIcona('salva', { class: 'btn', onclick: async () => { dialogo.close(); await V.progetti.salvaSuFile(true); } }, t('progetti.salvaConNome'))),
+          btnIcona('salva', { class: 'btn', onclick: async () => { dialogo.close(); await V.progetti.salvaSuFile(true); } }, t('progetti.salvaConNome')),
+          btnIcona('esporta', { class: 'btn', onclick: async () => { dialogo.close(); await V.copie.salvaUnaCopia(); } }, t('copie.salvaUnaCopia'))),
         h('p', { class: 'aiuto' }, t('progetti.aiutoElenco')),
+        h('div', { class: 'fila-pulsanti' },
+          btnIcona('esporta', { class: 'btn', id: 'btn-scarica-tutti', onclick: () => V.copie.scaricaTutti() }, t('copie.scaricaTutti')),
+          btnIcona('cartella', { class: 'btn', id: 'btn-importa-copia', onclick: () => V.copie.importaCopia() }, t('copie.importaCopia')),
+          h('button', { type: 'button', class: 'btn', id: 'btn-ho-perso', onclick: () => { dialogo.close(); V.statoLavoro.apriRecupero(); } }, t('recupero.apri'))),
+        h('p', { class: 'aiuto', id: 'spazio-progetti' }),
         h('details', { class: 'info-dettagli al-sicuro' },
           h('summary', {}, t('progetti.alSicuroTitolo')),
           h('p', {}, t('progetti.alSicuro1')),
@@ -15095,22 +15997,28 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   function init() {
     costruisciFinestra();
     $('titolo-progetto').addEventListener('click', modificaTitolo);
-    $('btn-salva').addEventListener('click', () => V.progetti.salvaSuFile(false));
+    // In Semplice c'è un solo Salva: sul tablet, dove non si sceglie il file, è «Salva una copia» (condivisione).
+    $('btn-salva').addEventListener('click', () => {
+      if (V.semplice && V.semplice.attivo() && V.copie.condivisioneComoda()) V.copie.salvaUnaCopia();
+      else V.progetti.salvaSuFile(false);
+    });
     $('btn-apri').addEventListener('click', () => V.progetti.apriFile());
     const menuSalva = $('menu-salva');
     $('btn-salva-nome').addEventListener('click', () => { menuSalva.open = false; V.progetti.salvaSuFile(true); });
+    $('btn-salva-copia').addEventListener('click', () => { menuSalva.open = false; V.copie.salvaUnaCopia(); });
     document.addEventListener('pointerdown', (e) => { if (menuSalva.open && !menuSalva.contains(e.target)) menuSalva.open = false; });
     menuSalva.addEventListener('keydown', (e) => { if (e.key === 'Escape') { menuSalva.open = false; menuSalva.querySelector('summary').focus(); } });
     $('btn-promemoria').addEventListener('click', () => V.progetti.salvaSuFile(false));
     $('btn-progetti').addEventListener('click', apriFinestra);
     collegaTasti();
-    V.ascolta('salvato', aggiornaStato);
+    V.ascolta('salvato', aggiornaPromemoria);
+    V.ascolta('elenco', () => { if ($('dialogo-progetti').open) disegnaElenco(); });
     V.ascolta('cambiato', aggiornaTitolo);
     V.ascolta('progetto', aggiornaTitolo);
     V.ascolta('file', aggiornaPromemoria);
     setInterval(aggiornaPromemoria, 60000);
     aggiornaTitolo();
-    aggiornaStato(null);
+    aggiornaPromemoria();
   }
 
   V.progettiUi = { init, apriFinestra };
@@ -15369,6 +16277,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     if (!attivaDavvero() || stato.inCorso) return false;
     stato.inCorso = true;
     const json = JSON.stringify(V.stato.progetto);
+    const inizio = new Date().toISOString();
     const nomeCartella = conCartellaLavoro() ? t('cartella.nomi.copie') : stato.cartella.name;
     try {
       const cartella = await dove();
@@ -15383,6 +16292,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
       stato.ultimoJson = json;
       stato.errore = null;
       await tieniLeUltime(cartella);
+      await V.progetti.segnaCopia('cartella', inizio);
       if (subito) V.interfaccia.avviso(t('sicurezza.fatta', { cartella: nomeCartella }));
       return true;
     } catch (e) {
@@ -15445,6 +16355,629 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   }
 
   V.sicurezza = { init, scegli, copia, proponi, attiva: attivaDavvero };
+})(window.Vignetta);
+
+</script>
+<script>
+// moduli/copie.js
+/* copie.js: le copie del lavoro che funzionano in ogni browser, anche dove non si può scrivere in una cartella.
+   - «Salva una copia»: il file .vgn del fumetto aperto. Dove il browser sa condividere un file (tablet,
+     telefono) si apre il foglio di condivisione; altrimenti il file si scarica.
+   - «Scarica tutti i miei fumetti»: un unico ZIP con un .vgn per fumetto, preso dall'archivio del browser.
+   - «Importa copia»: uno o più .vgn, oppure uno ZIP di .vgn, messi nell'archivio del browser senza
+     sovrascrivere niente (un fumetto già presente entra come copia, con un titolo nuovo).
+   - Copie dall'archivio del browser, anche delle versioni recenti, senza aprire né cambiare il fumetto
+     (servono a «Ho perso un fumetto»).
+   - Archiviazione persistente: si chiede al browser di non cancellare i dati, e si legge lo spazio usato.
+   Tutto si decide guardando cosa sa fare il browser (navigator.canShare, navigator.storage…), mai il suo nome. */
+(function (V) {
+  'use strict';
+
+  const t = (...a) => V.t(...a);
+  const MB = 1024 * 1024;
+
+  // --- Consegnare un file: condividerlo o scaricarlo ---
+
+  // La condivisione è il modo di salvare dove il browser sa condividere file, non sa far scegliere dove
+  // salvare un file e lo schermo si tocca (tablet, telefono). Sui computer (anche il Mac, dove Edge e
+  // Safari sanno condividere) il foglio di condivisione non permette di salvare in una cartella: si scarica.
+  function condivisioneComoda() {
+    if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return false;
+    if (window.showSaveFilePicker) return false;
+    return !!(window.matchMedia && window.matchMedia('(any-pointer: coarse)').matches);
+  }
+
+  function puoCondividere(file) {
+    if (!condivisioneComoda()) return false;
+    try { return navigator.canShare({ files: [file] }); } catch (e) { return false; }
+  }
+
+  // Restituisce 'condiviso', 'scaricato', null (annullato da chi usa l'app) oppure { serveClic: file }
+  // quando il browser vuole un clic nuovo per aprire il foglio di condivisione.
+  async function consegna(blob, nome) {
+    const file = new File([blob], nome, { type: blob.type || 'application/octet-stream' });
+    if (puoCondividere(file)) {
+      try {
+        await navigator.share({ files: [file], title: nome });
+        return 'condiviso';
+      } catch (e) {
+        if (e && e.name === 'AbortError') return null;
+        if (e && e.name === 'NotAllowedError') return { serveClic: file };
+        // Altri problemi della condivisione: si scarica, così la copia c'è comunque.
+      }
+    }
+    V.salvataggio.scarica(blob, nome);
+    return 'scaricato';
+  }
+
+  // Dentro un clic nuovo: si riprova a condividere, e se non va si scarica.
+  async function condividiOra(file) {
+    try {
+      await navigator.share({ files: [file], title: file.name });
+      return 'condiviso';
+    } catch (e) {
+      if (e && e.name === 'AbortError') return null;
+      V.salvataggio.scarica(file, file.name);
+      return 'scaricato';
+    }
+  }
+
+  // --- Salva una copia del fumetto aperto ---
+
+  async function salvaUnaCopia() {
+    if (V.modificaTesto) V.modificaTesto.chiudi(true);
+    const inizio = new Date().toISOString();
+    let blob;
+    try {
+      blob = await V.progetti.preparaFile();
+    } catch (e) {
+      V.interfaccia.avviso(t('progetti.preparazioneFallita', { dettaglio: (e && e.message) || String(e) }),
+        { etichetta: t('progetti.hoCapito'), azione: () => {} });
+      return null;
+    }
+    const nome = V.progetti.nomeFile(V.stato.progetto.titolo);
+    const esito = await consegna(blob, nome);
+    return dopoCopia(esito, nome, inizio, blob);
+  }
+
+  async function dopoCopia(esito, nome, inizio, blob) {
+    if (!esito) return null;
+    if (esito.serveClic) {
+      V.interfaccia.avviso(t('copie.prontaDaCondividere'), {
+        etichetta: t('copie.condividi'),
+        azione: async () => dopoCopia(await condividiOra(esito.serveClic), nome, inizio, blob),
+      });
+      return 'serve-clic';
+    }
+    await V.progetti.segnaCopia(esito, inizio);
+    const problemi = [...(blob.saltate || []), ...(blob.ridotte || [])];
+    const testo = t(esito === 'condiviso' ? 'copie.condivisa' : 'copie.scaricata', { nome })
+      + (problemi.length ? ' ' + t('copie.conProblemi', { foto: problemi.join(', ') }) : '');
+    V.interfaccia.avviso(testo, { etichetta: t('progetti.hoCapito'), azione: () => {} });
+    return esito;
+  }
+
+  // --- Copie dall'archivio del browser, senza aprire il fumetto ---
+
+  // Un file .vgn completo di un fumetto salvato nel browser. Con «json» si usa quella versione
+  // (per esempio una versione recente) invece dello stato attuale. Non cambia niente nell'archivio.
+  async function vgnDalBrowser(id, json) {
+    const rec = await V.deposito.leggiProgetto(id);
+    if (!rec) throw Object.assign(new Error('fumetto non trovato'), { codice: 'non-trovato' });
+    const progetto = V.formatoFile.migra(JSON.parse(json || rec.json));
+    const immagini = new Map((await V.deposito.immaginiDi(id)).map((r) => [r.id, r]));
+    const font = new Map((await V.deposito.fontDi(id)).map((r) => [r.id, r]));
+    return V.formatoFile.esporta(progetto, json ? null : rec.anteprima || null, {
+      immagine: (x) => immagini.get(x) || null,
+      font: (x) => font.get(x) || null,
+    });
+  }
+
+  const due = (n) => String(n).padStart(2, '0');
+  const giorno = (d) => `${d.getFullYear()}-${due(d.getMonth() + 1)}-${due(d.getDate())}`;
+  const minuto = (d) => `${giorno(d)} ${due(d.getHours())}.${due(d.getMinutes())}`;
+
+  // Una copia (attuale o di una versione) presa dall'archivio del browser, consegnata come «Salva una copia».
+  async function scaricaDalBrowser(id, json, quando) {
+    const rec = await V.deposito.leggiProgetto(id);
+    const blob = await vgnDalBrowser(id, json);
+    const titolo = (rec && rec.titolo) || t('progetti.senzaTitolo');
+    const nome = V.progetti.nomeFile(`${titolo} - ${t('copie.recupero')} ${minuto(new Date(quando || Date.now()))}`);
+    const esito = await consegna(blob, nome);
+    if (esito && esito.serveClic) {
+      V.interfaccia.avviso(t('copie.prontaDaCondividere'), { etichetta: t('copie.condividi'), azione: () => condividiOra(esito.serveClic) });
+    } else if (esito) {
+      V.interfaccia.avviso(t(esito === 'condiviso' ? 'copie.condivisa' : 'copie.scaricata', { nome }));
+    }
+    return { esito, nome, saltate: blob.saltate || [] };
+  }
+
+  // --- Scarica tutti i miei fumetti ---
+
+  const LEGGIMI_TUTTI = [
+    'Copia di tutti i fumetti di Vignetta - Officina del Fumetto salvati in un browser.',
+    '',
+    'Ogni file .vgn è un fumetto completo, con le sue foto.',
+    'Per rimetterli tutti in un browser: in Vignetta apri «I miei fumetti» e premi «Importa copia»,',
+    'poi scegli questo file ZIP. Un fumetto alla volta si apre anche con «Apri».',
+    '',
+  ].join('\r\n');
+
+  // Restituisce { blob, nome, fumetti, falliti: [titoli] }.
+  async function preparaTutti(avanzamento) {
+    await V.progetti.salvaOra();
+    const elenco = await V.deposito.elencoProgetti();
+    const voci = [], falliti = [], usati = new Set();
+    for (let k = 0; k < elenco.length; k++) {
+      const rec = elenco[k];
+      if (avanzamento) avanzamento(k, elenco.length);
+      let nome = V.progetti.nomeFile(rec.titolo);
+      for (let n = 2; usati.has(nome.toLowerCase()); n++) nome = V.progetti.nomeFile(`${rec.titolo} (${n})`);
+      try {
+        const blob = await vgnDalBrowser(rec.id);
+        voci.push({ nome, dati: new Uint8Array(await blob.arrayBuffer()), comprimi: false });
+        usati.add(nome.toLowerCase());
+      } catch (e) {
+        falliti.push(rec.titolo || t('progetti.senzaTitolo'));
+      }
+    }
+    voci.push({ nome: 'LEGGIMI.txt', dati: new TextEncoder().encode(LEGGIMI_TUTTI), comprimi: true });
+    const blob = await V.zip.crea(voci);
+    return { blob, nome: `${t('copie.nomeTutti')} ${giorno(new Date())}.zip`, fumetti: voci.length - 1, falliti };
+  }
+
+  async function scaricaTutti() {
+    if (!V.progetti.disponibile()) { V.interfaccia.avviso(t('progetti.soloMemoriaAiuto')); return null; }
+    V.interfaccia.avviso(t('copie.preparoTutti'));
+    let pronto;
+    try {
+      pronto = await preparaTutti();
+    } catch (e) {
+      V.interfaccia.avviso(t('copie.erroreTutti'), { etichetta: t('progetti.hoCapito'), azione: () => {} });
+      return null;
+    }
+    const esito = await consegna(pronto.blob, pronto.nome);
+    if (esito && esito.serveClic) {
+      V.interfaccia.avviso(t('copie.prontaDaCondividere'), { etichetta: t('copie.condividi'), azione: () => condividiOra(esito.serveClic) });
+    } else if (esito) {
+      const testo = t(esito === 'condiviso' ? 'copie.tuttiCondivisi' : 'copie.tuttiScaricati', { n: pronto.fumetti, nome: pronto.nome })
+        + (pronto.falliti.length ? ' ' + t('copie.tuttiFalliti', { titoli: pronto.falliti.join(', ') }) : '');
+      V.interfaccia.avviso(testo, { etichetta: t('progetti.hoCapito'), azione: () => {} });
+    }
+    return Object.assign({ esito }, pronto);
+  }
+
+  // --- Importa copia ---
+
+  // I .vgn contenuti in un file: lui stesso, oppure quelli dentro uno ZIP. Restituisce [{ nome, blob }].
+  async function vgnIn(file) {
+    let zip;
+    try { zip = await V.zip.leggi(file); } catch (e) { return []; }
+    if (zip.nomi.includes('progetto.json')) return [{ nome: file.name, blob: file }];
+    const dentro = [];
+    for (const nome of zip.nomi) {
+      if (!/\.vgn$/i.test(nome)) continue;
+      const dati = await zip.dati(nome);
+      if (dati) dentro.push({ nome: nome.split('/').pop(), blob: new Blob([dati], { type: V.formatoFile.TIPO_MIME }) });
+    }
+    return dentro;
+  }
+
+  // Mette un .vgn nell'archivio del browser. Non tocca il fumetto aperto e non sovrascrive mai:
+  // se lo stesso fumetto c'è già ed è identico si salta, se è diverso entra come copia.
+  async function importaUno(blob) {
+    const letto = await V.formatoFile.importa(blob);
+    const progetto = letto.progetto;
+    let esito = 'importato';
+    const esistente = await V.deposito.leggiProgetto(progetto.id);
+    if (esistente) {
+      if (esistente.json === JSON.stringify(progetto)) return { esito: 'gia-presente', titolo: progetto.titolo };
+      progetto.id = V.nuovoId('progetto');
+      progetto.titolo = t('copie.titoloImportato', { titolo: progetto.titolo, data: new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'numeric' }) });
+      esito = 'copia';
+    }
+    for (const im of letto.immagini) {
+      await V.deposito.scriviImmagine({
+        progetto: progetto.id, id: im.id, nome: im.nome, tipo: im.tipo, larghezza: im.larghezza, altezza: im.altezza, originale: im.originale,
+      });
+    }
+    for (const f of letto.font) {
+      await V.deposito.scriviFontProgetto({ progetto: progetto.id, id: f.id, nome: f.nome, famiglia: f.famiglia, tipo: f.tipo, dati: f.dati });
+    }
+    const ora = new Date().toISOString();
+    await V.deposito.scriviProgetto({
+      id: progetto.id, titolo: progetto.titolo, creato: progetto.creato || ora, modificato: letto.salvato || ora,
+      json: JSON.stringify(progetto), anteprima: letto.anteprima, file: null, nonSalvatoDa: null,
+    });
+    return { esito, titolo: progetto.titolo, id: progetto.id };
+  }
+
+  // Importa uno o più file (.vgn o ZIP di .vgn). Restituisce il riepilogo.
+  async function importaFile(file) {
+    const r = { importati: [], copie: [], giaPresenti: [], nonValidi: [] };
+    for (const f of file) {
+      const dentro = await vgnIn(f);
+      if (!dentro.length) { r.nonValidi.push(f.name); continue; }
+      for (const v of dentro) {
+        try {
+          const e = await importaUno(v.blob);
+          if (e.esito === 'importato') r.importati.push(e.titolo);
+          else if (e.esito === 'copia') r.copie.push(e.titolo);
+          else r.giaPresenti.push(e.titolo);
+        } catch (e) {
+          r.nonValidi.push(v.nome);
+        }
+      }
+    }
+    return r;
+  }
+
+  function testoImportazione(r) {
+    const parti = [];
+    const n = r.importati.length + r.copie.length;
+    parti.push(n ? t(n === 1 ? 'copie.importatoUno' : 'copie.importati', { n }) : t('copie.nessunoImportato'));
+    if (r.copie.length) parti.push(t('copie.importatiComeCopia', { titoli: r.copie.join(', ') }));
+    if (r.giaPresenti.length) parti.push(t('copie.giaPresenti', { titoli: r.giaPresenti.join(', ') }));
+    if (r.nonValidi.length) parti.push(t('copie.nonValidi', { nomi: r.nonValidi.join(', ') }));
+    return parti.join(' ');
+  }
+
+  // Dal pulsante «Importa copia»: sceglie i file e li importa. Restituisce il riepilogo, o null.
+  async function importaCopia() {
+    if (!V.progetti.disponibile()) { V.interfaccia.avviso(t('progetti.soloMemoriaAiuto')); return null; }
+    const file = await new Promise((ok) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = true;
+      input.accept = V.formatoFile.ESTENSIONE + ',.zip';
+      input.addEventListener('change', () => ok([...input.files]));
+      input.addEventListener('cancel', () => ok([]));
+      input.click();
+    });
+    if (!file.length) return null;
+    const r = await importaFile(file);
+    V.interfaccia.avviso(testoImportazione(r), { etichetta: t('progetti.hoCapito'), azione: () => {} });
+    V.annuncia('elenco');
+    return r;
+  }
+
+  // --- Archiviazione persistente e spazio usato ---
+
+  // { persistente: true | false | null (non si sa), usato, quota } (byte, o null).
+  async function archiviazione() {
+    const s = navigator.storage;
+    const r = { persistente: null, usato: null, quota: null };
+    if (s && typeof s.persisted === 'function') { try { r.persistente = await s.persisted(); } catch (e) { /* non si sa */ } }
+    if (s && typeof s.estimate === 'function') {
+      try { const e = await s.estimate(); r.usato = e.usage; r.quota = e.quota; } catch (e) { /* non si sa */ }
+    }
+    return r;
+  }
+
+  // Chiede al browser di non cancellare i dati da solo. true, false, oppure null se il browser non sa farlo.
+  async function chiediPersistenza() {
+    const s = navigator.storage;
+    if (!s || typeof s.persist !== 'function') return null;
+    try {
+      if (typeof s.persisted === 'function' && (await s.persisted())) return true;
+      return await s.persist();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  const OGNI_AVVISO_ARCHIVIO = 7 * 24 * 3600 * 1000; // l'avviso sull'archivio torna al massimo una volta a settimana
+
+  async function init() {
+    if (!V.progetti.disponibile()) return;
+    const persistente = await chiediPersistenza();
+    stato.persistente = persistente;
+    if (persistente === false) {
+      const ultimo = V.preferenze.leggi('avvisoArchivio', 0);
+      if (Date.now() - ultimo > OGNI_AVVISO_ARCHIVIO) {
+        V.preferenze.scrivi('avvisoArchivio', Date.now());
+        V.interfaccia.avvisoInCoda(t('copie.archivioNonPersistente'), { etichetta: t('copie.salvaUnaCopia'), azione: salvaUnaCopia });
+      }
+    }
+  }
+  const stato = { persistente: null };
+
+  function testoSpazio(a) {
+    if (a.usato === null) return '';
+    const mb = (n) => (n < 10 * MB ? V.formattaMm(Math.round((n / MB) * 10) / 10) : Math.round(n / MB).toLocaleString('it-IT'));
+    if (a.quota) return t('copie.spazioUsatoDi', { usato: mb(a.usato), quota: a.quota > 1024 * MB ? `${V.formattaMm(Math.round(a.quota / 1024 / MB))} GB` : `${mb(a.quota)} MB` });
+    return t('copie.spazioUsato', { usato: mb(a.usato) });
+  }
+
+  V.copie = {
+    init, salvaUnaCopia, consegna, puoCondividere, condivisioneComoda, vgnDalBrowser, scaricaDalBrowser, preparaTutti, scaricaTutti,
+    importaFile, importaCopia, testoImportazione, archiviazione, chiediPersistenza, testoSpazio,
+    persistente: () => stato.persistente,
+  };
+})(window.Vignetta);
+
+</script>
+<script>
+// moduli/stato-lavoro.js
+/* stato-lavoro.js: dove si trova il lavoro, detto in modo chiaro.
+   - Lo stato nella barra (#stato-salvataggio), su tre livelli: «Solo in questo browser», «Salvato nel file»
+     con l'ora, «Copia di sicurezza fatta alle HH:MM». Un clic apre una spiegazione con l'azione giusta.
+   - «Ho perso un fumetto»: legge l'archivio del browser (senza cambiarlo) e scarica fumetti e versioni.
+   - Avvisi sui rischi: fumetto molto pesante, font aggiunti a mano che mancano.
+   - Il promemoria sulle modifiche non salvate nel file: uno solo per fumetto e per sessione. */
+(function (V) {
+  'use strict';
+
+  const t = (...a) => V.t(...a);
+  const $ = (id) => document.getElementById(id);
+  const MB = 1024 * 1024;
+
+  // Soglie del fumetto pesante (approvate il 2026-11-26): foto originali usate nel fumetto.
+  const PESANTE = { mb: 150, foto: 60 };
+  const MOLTO_PESANTE = { mb: 400 };
+
+  const ora = (iso) => new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  const quando = (iso) => {
+    const d = new Date(iso), oggi = new Date();
+    if (d.toDateString() === oggi.toDateString()) return t('stato.alle', { ora: ora(iso) });
+    return t('stato.ilGiorno', { data: d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }), ora: ora(iso) });
+  };
+
+  // Dove il browser non sa scrivere su un file scelto ma sa condividere, «Salva una copia» è l'azione giusta.
+  const meglioCopia = () => V.copie.condivisioneComoda();
+
+  // --- Lo stato nella barra ---
+  let ultimoErrore = null;
+
+  function aggiorna(info) {
+    if (info && 'errore' in info) ultimoErrore = info.errore || null;
+    else if (info && info.quando) ultimoErrore = null;
+    const s = $('stato-salvataggio');
+    if (!s) return;
+    const l = V.progetti.livello();
+    let lungo, breve, classe;
+    if (l.livello === 'nessuno') { lungo = t('progetti.soloMemoria'); breve = t('stato.breveNessuno'); classe = 'problema'; }
+    else if (ultimoErrore) { lungo = t('progetti.salvataggioNonRiuscito'); breve = t('stato.breveErrore'); classe = 'problema'; }
+    else if (l.livello === 'file') { lungo = t('stato.file', { quando: quando(l.ora) }); breve = t('stato.breveFile'); classe = 'al-sicuro'; }
+    else if (l.livello === 'copia') { lungo = t('stato.copia', { quando: quando(l.ora) }); breve = t('stato.breveCopia'); classe = 'al-sicuro'; }
+    else { lungo = t('stato.browser'); breve = t('stato.breveBrowser'); classe = 'solo-browser'; }
+    s.className = 'stato-salvataggio ' + classe;
+    s.dataset.livello = ultimoErrore && l.livello !== 'nessuno' ? 'errore' : l.livello;
+    s.querySelector('.stato-lungo').textContent = lungo;
+    s.querySelector('.stato-breve').textContent = breve;
+    s.setAttribute('aria-label', lungo + '. ' + t('stato.aiutoClic'));
+    s.title = t('stato.aiutoClic');
+  }
+
+  // --- La spiegazione, con l'azione giusta ---
+  let dialogo = null;
+
+  function azioni(l) {
+    const { btnIcona } = V.ui;
+    const chiudiE = (fn) => async () => { dialogo.close(); await fn(); };
+    const salvaFile = btnIcona('salva', { class: 'btn', onclick: chiudiE(() => V.progetti.salvaSuFile(false)) },
+      t(window.showSaveFilePicker ? 'stato.salvaNelFile' : 'stato.scaricaIlFile'));
+    const copia = btnIcona('esporta', { class: 'btn', onclick: chiudiE(() => V.copie.salvaUnaCopia()) }, t('copie.salvaUnaCopia'));
+    if (l.livello === 'file') { copia.classList.add('btn-principale'); return [copia]; }
+    if (l.livello === 'copia' && !meglioCopia()) { salvaFile.classList.add('btn-principale'); return [salvaFile, copia]; }
+    if (meglioCopia()) { copia.classList.add('btn-principale'); return [copia, salvaFile]; }
+    salvaFile.classList.add('btn-principale');
+    return [salvaFile, copia];
+  }
+
+  function testoLivello(l) {
+    if (l.livello === 'nessuno') return [t('progetti.soloMemoriaAiuto')];
+    if (ultimoErrore) return [t('stato.spiegaErrore')];
+    if (l.livello === 'file') return [t('stato.spiegaFile', { nome: l.file.nome || '', quando: quando(l.ora) })];
+    if (l.livello === 'copia') {
+      return [t('stato.spiegaCopia', { quando: quando(l.ora), dove: t('stato.dove_' + (l.modo || 'scaricato')) }),
+        t(l.file ? 'stato.spiegaCopiaFileVecchio' : 'stato.spiegaCopiaSenzaFile')];
+    }
+    const righe = [t('stato.spiegaBrowser')];
+    if (l.file) righe.push(t('stato.spiegaBrowserFile', { nome: l.file.nome || '' }));
+    if (l.copia) righe.push(t('stato.spiegaBrowserCopia', { quando: quando(l.copia.quando) }));
+    return righe;
+  }
+
+  async function spiega() {
+    const { h, btnIcona } = V.ui;
+    await V.progetti.salvaOra();
+    const l = V.progetti.livello();
+    const a = await V.copie.archiviazione();
+    const peso = pesoDel(V.stato.progetto);
+    if (!dialogo) {
+      dialogo = h('dialog', { id: 'dialogo-stato', 'aria-labelledby': 'titolo-stato' });
+      dialogo.addEventListener('click', (e) => { if (e.target === dialogo) dialogo.close(); });
+      document.body.append(dialogo);
+    }
+    const archivio = a.persistente === true ? t('stato.archivioPersistente')
+      : a.persistente === false ? t('stato.archivioNonPersistente') : '';
+    dialogo.replaceChildren(h('div', { class: 'dialogo' },
+      h('div', { class: 'dialogo-testa' },
+        h('h2', { class: 'pannello-titolo', id: 'titolo-stato' }, $('stato-salvataggio').querySelector('.stato-lungo').textContent),
+        btnIcona('chiudi', { class: 'btn btn-icona', 'aria-label': t('comandi.chiudi'), title: t('comandi.chiudi'), onclick: () => dialogo.close() })),
+      ...testoLivello(l).map((r) => h('p', {}, r)),
+      h('div', { class: 'fila-pulsanti' }, ...azioni(l)),
+      h('p', { class: 'aiuto' }, [archivio, V.copie.testoSpazio(a), peso.foto ? t('stato.pesoFumetto', { mb: mbTesto(peso.byte), foto: peso.foto }) : '']
+        .filter(Boolean).join(' ')),
+      h('div', { class: 'fila-pulsanti' },
+        h('button', { type: 'button', class: 'btn', onclick: () => { dialogo.close(); apriRecupero(); } }, t('recupero.apri')),
+        h('button', { type: 'button', class: 'btn', onclick: () => { dialogo.close(); V.progettiUi.apriFinestra(); } }, t('progetti.mieiFumetti')))));
+    dialogo.showModal();
+  }
+
+  // --- Ho perso un fumetto ---
+  let finestraRecupero = null;
+  const urlRecupero = [];
+
+  function riassunto(json) {
+    try {
+      const p = JSON.parse(json);
+      const vignette = p.pagine.reduce((n, pg) => n + pg.vignette.length, 0);
+      const elementi = p.pagine.reduce((n, pg) => n + (pg.elementi || []).length, 0);
+      return t('recupero.riassunto', { pagine: p.pagine.length, vignette, elementi, foto: V.formatoFile.immaginiUsate(p).size });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  const dataOra = (iso) => new Date(iso).toLocaleString('it-IT', { dateStyle: 'medium', timeStyle: 'short' });
+
+  async function apriRecupero() {
+    const { h, btnIcona } = V.ui;
+    if (!finestraRecupero) {
+      finestraRecupero = h('dialog', { id: 'dialogo-recupero', class: 'dialogo-largo', 'aria-labelledby': 'titolo-recupero' });
+      finestraRecupero.addEventListener('click', (e) => { if (e.target === finestraRecupero) finestraRecupero.close(); });
+      finestraRecupero.addEventListener('close', () => urlRecupero.splice(0).forEach((u) => URL.revokeObjectURL(u)));
+      document.body.append(finestraRecupero);
+    }
+    const contenuto = h('div', { id: 'recupero-elenco' }, h('p', { class: 'aiuto' }, t('recupero.lettura')));
+    finestraRecupero.replaceChildren(h('div', { class: 'dialogo' },
+      h('div', { class: 'dialogo-testa' },
+        h('h2', { class: 'pannello-titolo', id: 'titolo-recupero' }, t('recupero.titolo')),
+        btnIcona('chiudi', { class: 'btn btn-icona', 'aria-label': t('comandi.chiudi'), title: t('comandi.chiudi'), onclick: () => finestraRecupero.close() })),
+      h('p', {}, t('recupero.spiega')),
+      contenuto,
+      h('p', { class: 'aiuto' }, t('recupero.ultimaRisorsa'))));
+    if (!finestraRecupero.open) finestraRecupero.showModal();
+    if (!V.progetti.disponibile()) { contenuto.replaceChildren(h('p', { class: 'aiuto' }, t('progetti.soloMemoriaAiuto'))); return; }
+    await V.progetti.salvaOra();
+    const elenco = await V.deposito.elencoProgetti();
+    if (!elenco.length) { contenuto.replaceChildren(h('p', { class: 'aiuto' }, t('recupero.vuoto'))); return; }
+    const schede = [];
+    for (const rec of elenco) {
+      const url = rec.anteprima ? URL.createObjectURL(rec.anteprima) : null;
+      if (url) urlRecupero.push(url);
+      const versioni = await V.deposito.versioni(rec.id);
+      const pulsante = (json, quandoIso) => {
+        const b = h('button', { type: 'button', class: 'btn' }, t('recupero.scarica'));
+        if (json !== null && riassunto(json) === null) { b.disabled = true; return b; }
+        b.addEventListener('click', async () => {
+          b.disabled = true;
+          try {
+            const r = await V.copie.scaricaDalBrowser(rec.id, json, quandoIso);
+            if (r.saltate.length) V.interfaccia.avviso(t('recupero.fotoMancanti', { n: r.saltate.length }), { etichetta: t('progetti.hoCapito'), azione: () => {} });
+          } catch (e) {
+            V.interfaccia.avviso(t('recupero.errore'), { etichetta: t('progetti.hoCapito'), azione: () => {} });
+          }
+          b.disabled = false;
+        });
+        return b;
+      };
+      const riga = (etichetta, iso, json) => h('li', {},
+        h('span', { class: 'versione-testo' }, h('span', {}, `${etichetta} · ${dataOra(iso)}`),
+          h('span', { class: 'scheda-progetto-data' }, riassunto(json || rec.json) || t('recupero.illeggibile'))),
+        pulsante(json, iso));
+      schede.push(h('section', { class: 'recupero-fumetto' },
+        h('div', { class: 'recupero-testa' },
+          url ? h('img', { class: 'recupero-anteprima', src: url, alt: '' }) : h('span', { class: 'recupero-anteprima anteprima-vuota' }),
+          h('h3', { class: 'gruppo-titolo' }, rec.titolo || t('progetti.senzaTitolo'))),
+        h('ul', { class: 'elenco-versioni' },
+          riga(t('recupero.statoAttuale'), rec.modificato, null),
+          ...versioni.map((v) => riga(t('recupero.versione'), v.data, v.json)))));
+    }
+    contenuto.replaceChildren(...schede);
+  }
+
+  // --- Fumetto pesante ---
+  function pesoDel(progetto) {
+    let byte = 0, foto = 0;
+    for (const id of V.formatoFile.immaginiUsate(progetto)) {
+      const v = V.archivio.voce(id);
+      if (!v) continue;
+      foto++;
+      byte += v.byte || (v.originale && v.originale.size) || 0;
+    }
+    return { byte, foto };
+  }
+  const mbTesto = (b) => (b < 10 * MB ? V.formattaMm(Math.round((b / MB) * 10) / 10) : Math.round(b / MB).toLocaleString('it-IT'));
+
+  function gradoPeso(p) {
+    if (p.byte >= MOLTO_PESANTE.mb * MB) return 2;
+    if (p.byte >= PESANTE.mb * MB || p.foto >= PESANTE.foto) return 1;
+    return 0;
+  }
+
+  const avvisatoPeso = new Map(); // id del fumetto → grado già segnalato in questa sessione
+  function controllaPeso() {
+    const id = V.progetti.idAperto();
+    const p = pesoDel(V.stato.progetto);
+    const g = gradoPeso(p);
+    if (g <= (avvisatoPeso.get(id) || 0)) return g;
+    avvisatoPeso.set(id, g);
+    const testo = t(g === 2 ? 'stato.moltoPesante' : 'stato.pesante', { mb: mbTesto(p.byte), foto: p.foto });
+    V.interfaccia.avvisoInCoda(testo, g === 2
+      ? { etichetta: t('copie.salvaUnaCopia'), azione: () => V.copie.salvaUnaCopia() }
+      : { etichetta: t('progetti.hoCapito'), azione: () => {} });
+    return g;
+  }
+
+  // --- Font aggiunti a mano che mancano ---
+  const avvisatoFont = new Set();
+  function controllaFont(progetto) {
+    const id = V.progetti.idAperto();
+    const mancanti = V.font.mancantiIn(progetto);
+    if (!mancanti.length || avvisatoFont.has(id)) return mancanti;
+    avvisatoFont.add(id);
+    const pagine = [...new Set(mancanti.flatMap((m) => m.pagine))].sort((a, b) => a - b);
+    const elementi = mancanti.reduce((n, m) => n + m.elementi, 0);
+    V.interfaccia.avvisoInCoda(t(mancanti.length === 1 ? 'stato.fontMancante' : 'stato.fontMancanti', {
+      n: mancanti.length, elementi, pagine: pagine.join(', '),
+    }), { etichetta: t('progetti.hoCapito'), azione: () => {} });
+    return mancanti;
+  }
+
+  // --- Il promemoria: uno solo per fumetto e per sessione ---
+  const ricordati = new Set();
+
+  function azioneSalva() {
+    return meglioCopia()
+      ? { etichetta: t('copie.salvaUnaCopia'), azione: () => V.copie.salvaUnaCopia() }
+      : { etichetta: t('progetti.salvaOra'), azione: () => V.progetti.salvaSuFile(false) };
+  }
+
+  // «motivo»: 'riapertura' (all'avvio, l'ultima volta si è chiuso senza salvare nel file) oppure 'tempo'.
+  function promemoria(motivo) {
+    const id = V.progetti.idAperto();
+    if (ricordati.has(id)) return false;
+    if (V.progetti.livello().livello !== 'browser') return false;
+    ricordati.add(id);
+    const conFile = !!V.progetti.file();
+    const chiave = motivo === 'riapertura'
+      ? (conFile ? 'progetti.riapertoModificato' : 'progetti.riapertoMai')
+      : (conFile ? 'stato.promemoriaFile' : 'stato.promemoriaMai');
+    V.interfaccia.avvisoInCoda(t(chiave, { minuti: V.progetti.promemoria() || '' }) + ' ' + t(meglioCopia() ? 'stato.promemoriaComeCopia' : 'stato.promemoriaCome'), azioneSalva());
+    return true;
+  }
+
+  function controllaPromemoria() {
+    return V.progetti.promemoria() !== null ? promemoria('tempo') : false;
+  }
+
+  // --- Collegamenti ---
+  function init() {
+    const s = $('stato-salvataggio');
+    s.addEventListener('click', spiega);
+    V.ascolta('salvato', aggiorna);
+    V.ascolta('file', () => aggiorna(null));
+    V.ascolta('progetto', () => aggiorna(null));
+    V.ascolta('aperto', (d) => {
+      if (d.iniziale) return; // all'avvio il controllo lo fa init, quando anche i font della libreria ci sono
+      setTimeout(() => {
+        controllaFont(d.progetto);
+        if (d.fontNuovi && d.fontNuovi.length) V.interfaccia.avvisoInCoda(t('font.nuoviDalFile', { n: d.fontNuovi.length }),
+          { etichetta: t('font.aggiungiAllaLibreria'), azione: () => V.font.aggiungiAllaLibreria(d.fontNuovi) });
+        controllaPeso();
+      }, 300);
+    });
+    let timer = null;
+    V.ascolta('cambiato', () => { clearTimeout(timer); timer = setTimeout(controllaPeso, 1500); });
+    setInterval(controllaPromemoria, 60000);
+    aggiorna(null);
+    setTimeout(() => { controllaFont(V.stato.progetto); controllaPeso(); }, 500);
+  }
+
+  V.statoLavoro = { init, aggiorna, spiega, apriRecupero, pesoDel, gradoPeso, controllaPeso, controllaFont, promemoria, controllaPromemoria, PESANTE, MOLTO_PESANTE };
 })(window.Vignetta);
 
 </script>
@@ -15595,7 +17128,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
       V.annuncia('cambiato');
     });
     trasparenza.addEventListener('change', () => V.storia.concludi(t('azioni.sfondoImmagineModifica')));
-    return h('div', { class: 'campo-margini', id: 'pg-sfondo-immagine' },
+    return h('div', { class: 'campo-margini', id: 'pg-sfondo-immagine', 'data-comando': 'pagina-sfondo-immagine' },
       h('span', { class: 'campo-nome' }, t('pagine.sfondoImmagine')),
       file,
       h('div', { id: 'pg-sfi-vuoto', class: 'margini-lati' },
@@ -15695,7 +17228,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
 
     const pagine = V.stato.progetto.pagine.length;
     return h('div', {},
-      h('div', { class: 'gruppo' },
+      h('div', { class: 'gruppo', 'data-comando': 'pagina-base' },
         h('p', { class: 'intestazione', id: 'pg-titolo' }),
         h('div', { class: 'fila-pulsanti' },
           btnIcona('duplica', { class: 'btn', onclick: V.pagine.duplica }, t('pagine.duplica')),
@@ -15954,7 +17487,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   // Anteprima di un formato: una piccola pagina di fumetto con il primo modello di vignette,
   // nella carta, nei bordi e nei balloon dello stile. Ogni vignetta ha una scena appena
   // accennata, a turno un paesaggio, un personaggio con il suo balloon, un interno.
-  function anteprimaFormato(formato, idStile) {
+  function anteprimaFormato(formato, idStile, idModello) {
     const imp = Object.assign({}, V.dati.paginaPredefinita, formato.pagina);
     const d = V.modello.dimensioni(imp);
     const altezzaVista = Math.min(d.a, d.l * 1.6); // il webtoon si mostra solo in parte
@@ -15972,11 +17505,12 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     const s = el('svg', { viewBox: `0 0 ${d.l} ${altezzaVista}`, class: 'anteprima-formato', 'aria-hidden': 'true' });
     const defs = el('defs', {});
     s.append(defs, el('rect', { x: 0, y: 0, width: d.l, height: altezzaVista, fill: stile.carta }));
-    const vignette = V.modello.generaVignette(formato.modelli[0], imp).filter((v) => v.y < altezzaVista);
+    const modello = idModello || formato.modelli[0];
+    const vignette = V.modello.generaVignette(modello, imp).filter((v) => v.y < altezzaVista);
     const spessore = Math.max(0.9, stile.vignetta.spessore * 1.2);
 
     vignette.forEach((v, i) => {
-      const id = `ant-${formato.id}-${i}`;
+      const id = `ant-${formato.id}-${modello}-${i}`;
       const clip = el('clipPath', { id });
       clip.append(el('rect', { x: v.x, y: v.y, width: v.l, height: v.a }));
       defs.append(clip);
@@ -16064,20 +17598,133 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     h('span', { class: 'voce-stile-nome' }, nome))));
   }
 
+  const semplice = () => !!(V.semplice && V.semplice.attivo());
+
   // Le schede dei formati, con le anteprime nello stile scelto (o in quello consigliato per ciascuno).
+  // In Semplice solo i formati di dati/modo-semplice.js, e un clic porta al secondo passo.
   function disegnaFormati() {
     const { h } = V.ui;
-    $('iniziale-formati').replaceChildren(...V.dati.formatiFumetto.map((f) => h('button', {
+    const formati = semplice()
+      ? V.dati.modoSemplice.formati.map((id) => V.dati.formatiFumetto.find((f) => f.id === id)).filter(Boolean)
+      : V.dati.formatiFumetto;
+    $('iniziale-formati').replaceChildren(...formati.map((f) => h('button', {
       type: 'button', class: 'scheda-formato', 'data-formato': f.id,
-      onclick: async () => { await V.progetti.nuovo(f.id, stileScelto); chiudi(); },
+      onclick: async () => {
+        if (semplice()) { passoModello(f); return; }
+        await V.progetti.nuovo(f.id, stileScelto);
+        chiudi();
+      },
     },
     h('span', { class: 'contenitore-anteprima' }, anteprimaFormato(f, stileScelto || V.dati.stilePerFormato[f.id] || V.dati.stilePredefinito)),
     h('span', { class: 'scheda-nome' }, t(`formatiFumetto.${f.id}.nome`)),
     h('span', { class: 'scheda-descrizione' }, t(`formatiFumetto.${f.id}.uso`)))));
   }
 
+  // --- «Crea in 3 passi» (Semplice): formato, modello, foto ---
+  function mostraPassi(attivi) {
+    $('schermata-iniziale').classList.toggle('in-passi', attivi);
+    $('iniziale-passi').hidden = !attivi;
+    $('schermata-iniziale').scrollTop = 0;
+  }
+
+  function testaPasso(n, titolo, indietro) {
+    const { h, btnIcona } = V.ui;
+    return h('div', { class: 'passi-titolo' },
+      h('span', { class: 'passi-contatore' }, t('semplice.passo', { n })),
+      h('h2', { class: 'iniziale-domanda', id: 'passi-titolo' }, titolo),
+      btnIcona('freccia-sx', { class: 'btn', id: 'passi-indietro', onclick: indietro }, t('semplice.indietro')));
+  }
+
+  function passoModello(f) {
+    const { h } = V.ui;
+    const stile = stileScelto || V.dati.stilePerFormato[f.id] || V.dati.stilePredefinito;
+    const scelti = V.dati.modoSemplice.modelli && V.dati.modoSemplice.modelli[f.id];
+    const modelli = scelti || f.modelli.slice(0, V.dati.modoSemplice.modelliPerFormato);
+    $('iniziale-passi').replaceChildren(
+      testaPasso(2, t('semplice.passoModello'), () => mostraPassi(false)),
+      h('div', { class: 'griglia-formati', id: 'passi-modelli' }, ...modelli.map((m) => h('button', {
+        type: 'button', class: 'scheda-formato', 'data-modello': m, onclick: () => passoFoto(f, m),
+      },
+      h('span', { class: 'contenitore-anteprima' }, anteprimaFormato(f, stile, m)),
+      h('span', { class: 'scheda-nome' }, t(`modelli.${m}.nome`)),
+      h('span', { class: 'scheda-descrizione' }, t(`modelli.${m}.descrizione`))))));
+    mostraPassi(true);
+    const primo = $('passi-modelli').querySelector('button');
+    if (primo) primo.focus();
+  }
+
+  function passoFoto(f, modello) {
+    const { h, btnIcona } = V.ui;
+    let scelte = [];
+    const conta = h('p', { class: 'passo-foto-scelte', role: 'status' });
+    const input = h('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true, id: 'passi-file' });
+    const crea = btnIcona('fatto', { class: 'btn btn-principale', id: 'passi-crea', onclick: () => creaGuidato(f, modello, scelte) }, t('semplice.creaFumetto'));
+    input.addEventListener('change', () => {
+      scelte = [...input.files].filter(V.archivio.sembraImmagine);
+      conta.textContent = scelte.length ? t(scelte.length === 1 ? 'semplice.unaFotoScelta' : 'semplice.fotoScelte', { n: scelte.length }) : '';
+    });
+    $('iniziale-passi').replaceChildren(
+      testaPasso(3, t('semplice.passoFoto'), () => passoModello(f)),
+      h('div', { class: 'passo-foto' },
+        h('p', { class: 'aiuto' }, t('semplice.passoFotoAiuto')),
+        input,
+        h('div', { class: 'fila-pulsanti' },
+          btnIcona('immagine', { class: 'btn', id: 'passi-scegli', onclick: () => input.click() }, t('semplice.scegliFoto'))),
+        conta,
+        h('div', { class: 'fila-pulsanti' },
+          crea,
+          h('button', { type: 'button', class: 'btn', id: 'passi-salta', onclick: () => creaGuidato(f, modello, []) }, t('semplice.saltaFoto')))));
+    $('passi-scegli').focus();
+  }
+
+  // Crea il fumetto: formato e modello scelti, le foto nelle vignette in ordine, un balloon di esempio
+  // nella prima vignetta. Si parte senza passi da annullare.
+  async function creaGuidato(f, modello, foto) {
+    await V.progetti.nuovo(f.id, stileScelto, { modello });
+    const pagina = V.paginaAttiva();
+    if (foto.length && pagina.vignette.length) await V.immagini.inserisciNelleVignette(foto, pagina.vignette[0].id);
+    const v = V.paginaAttiva().vignette[0];
+    const d = V.modello.dimensioni(V.stato.progetto.pagina);
+    const x = v ? v.x + v.l / 2 : d.l / 2, y = v ? v.y + Math.min(v.a * 0.25, 30) : d.a / 3;
+    V.storia.esegui(t('azioni.aggiungiBalloon'), (p) => {
+      const b = V.balloon.nuovoBalloon('dialogo', x, y);
+      b.testo = [{ t: t(V.tocco && V.tocco.attivo() ? 'semplice.balloonEsempioTocco' : 'semplice.balloonEsempio'), b: false, i: false }];
+      p.pagine[0].elementi.push(b);
+    });
+    V.storia.azzera();
+    V.seleziona(null);
+    await V.progetti.salvaOra();
+    mostraPassi(false);
+    chiudi();
+  }
+
+  // --- Modalità: la domanda gentile della prima volta e l'interruttore ---
+  function disegnaModalita() {
+    const { h } = V.ui;
+    const domanda = $('iniziale-domanda-modalita');
+    const scelta = V.semplice ? V.semplice.scelta() : 'completa';
+    if (!scelta) {
+      const voce = (modo, titolo, aiuto) => h('button', {
+        type: 'button', class: 'btn scelta-modalita-voce' + (modo === 'semplice' ? ' btn-principale' : ''), 'data-modalita': modo,
+        onclick: () => { V.semplice.imposta(modo); disegna(); },
+      }, h('strong', {}, t(titolo)), h('small', {}, t(aiuto)));
+      domanda.replaceChildren(h('div', { class: 'scelta-modalita', role: 'group', 'aria-labelledby': 'domanda-modalita' },
+        h('h2', { id: 'domanda-modalita' }, t('semplice.domanda')),
+        h('div', { class: 'fila-pulsanti' },
+          voce('semplice', 'semplice.sceltaSemplice', 'semplice.sceltaSempliceAiuto'),
+          voce('completa', 'semplice.sceltaCompleta', 'semplice.sceltaCompletaAiuto')),
+        h('p', { class: 'aiuto' }, t('semplice.domandaAiuto'))));
+    } else {
+      domanda.replaceChildren();
+    }
+    $('iniziale-modalita').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.valore === (scelta || 'completa'))));
+    $('iniziale-passo1').hidden = !semplice();
+  }
+
   async function disegna() {
     const { h, btnIcona } = V.ui;
+    disegnaModalita();
+    mostraPassi(false);
     disegnaStili();
     urlAnteprime.splice(0).forEach((u) => URL.revokeObjectURL(u));
     const elenco = await V.progetti.elenco();
@@ -16147,22 +17794,29 @@ Vignetta.dati.guida = /* @guida-inizio */ {
             h('p', { class: 'marchio-sotto' }, t('app.sottotitolo')),
             ...(t('app.motto') ? [h('p', { class: 'marchio-motto' }, t('app.motto'))] : [])),
           btnIcona('chiudi', { class: 'btn btn-icona', id: 'iniziale-chiudi', 'aria-label': t('iniziale.torna'), title: t('iniziale.torna'), onclick: chiudi })),
-        h('div', { id: 'iniziale-continua' }),
-        h('h1', { class: 'iniziale-domanda', id: 'iniziale-titolo' }, t('iniziale.domanda')),
-        h('p', { class: 'aiuto' }, t('iniziale.aiuto')),
-        h('div', { class: 'scelta-stile' },
+        h('div', { id: 'iniziale-domanda-modalita' }),
+        h('div', { class: 'iniziale-modalita' },
+          h('span', { class: 'campo-nome' }, t('semplice.modalita')),
+          h('div', { class: 'segmentato', id: 'iniziale-modalita' },
+            ...['semplice', 'completa'].map((m) => h('button', { type: 'button', 'data-valore': m, onclick: () => { V.semplice.imposta(m); disegna(); } }, t('semplice.' + m))))),
+        h('div', { id: 'iniziale-passi', class: 'iniziale-passi', hidden: true }),
+        h('div', { id: 'iniziale-continua', class: 'iniziale-normale' }),
+        h('span', { class: 'passi-contatore iniziale-normale', id: 'iniziale-passo1', hidden: true }, t('semplice.passo', { n: 1 })),
+        h('h1', { class: 'iniziale-domanda iniziale-normale', id: 'iniziale-titolo' }, t('iniziale.domanda')),
+        h('p', { class: 'aiuto iniziale-normale' }, t('iniziale.aiuto')),
+        h('div', { class: 'scelta-stile iniziale-normale', 'data-comando': 'iniziale-stili' },
           h('span', { class: 'campo-nome' }, t('iniziale.stile')),
           h('div', { class: 'campioni-stile', id: 'iniziale-stili', role: 'group', 'aria-label': t('iniziale.stile') })),
-        h('div', { class: 'griglia-formati', id: 'iniziale-formati' }),
-        h('div', { class: 'iniziale-apri' },
+        h('div', { class: 'griglia-formati iniziale-normale', id: 'iniziale-formati' }),
+        h('div', { class: 'iniziale-apri iniziale-normale' },
           btnIcona('cartella', { class: 'btn', id: 'iniziale-apri', onclick: async () => {
             // Si chiude solo se il fumetto si è aperto davvero: annullando, si resta qui.
             if (await V.progetti.apriFile()) chiudi();
           } }, t('iniziale.apriFile')),
           h('span', { class: 'aiuto' }, t('iniziale.apriFileAiuto'))),
-        h('p', { class: 'gruppo-titolo', id: 'iniziale-recenti-titolo' }, t('iniziale.recenti')),
-        h('div', { class: 'griglia-recenti', id: 'iniziale-recenti' }),
-        h('button', { type: 'button', class: 'btn', id: 'iniziale-tutti', onclick: () => { chiudi(); V.progettiUi.apriFinestra(); } }, t('iniziale.tutti')),
+        h('p', { class: 'gruppo-titolo iniziale-normale', id: 'iniziale-recenti-titolo' }, t('iniziale.recenti')),
+        h('div', { class: 'griglia-recenti iniziale-normale', id: 'iniziale-recenti' }),
+        h('button', { type: 'button', class: 'btn iniziale-normale', id: 'iniziale-tutti', onclick: () => { chiudi(); V.progettiUi.apriFinestra(); } }, t('iniziale.tutti')),
         h('footer', { class: 'iniziale-piede' },
           h('span', {}, t('informazioni.piede')),
           h('button', { type: 'button', class: 'btn-link', onclick: () => V.informazioni.apri() }, t('informazioni.apri')))));
@@ -16331,16 +17985,24 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     const miei = tavolozza();
     parti.push(
       h('p', { class: 'colori-titolo' }, t('colori.tavolozza')),
-      h('div', { class: 'colori-fila' },
+      h('div', { class: 'colori-fila' + (modoTogli ? ' togli' : '') },
         ...miei.map((c) => campione(c, {
-          onclick: () => usa(c),
+          // Nel modo «Togli dei colori» (il pulsante a vista per chi non ha il tasto destro) un tocco toglie.
+          onclick: () => { if (modoTogli) { togliDaTavolozza(c); riempi(input); } else usa(c); },
           oncontextmenu: (e) => { e.preventDefault(); togliDaTavolozza(c); riempi(input); },
         })),
         h('button', {
           type: 'button', class: 'campione-colore campione-aggiungi', title: t('colori.aggiungi'), 'aria-label': t('colori.aggiungi'),
           onclick: () => { aggiungiATavolozza(input.value); riempi(input); },
         }, '+')),
-      h('p', { class: 'aiuto' }, t(miei.length ? 'colori.tavolozzaAiuto' : 'colori.tavolozzaVuota')));
+      h('p', { class: 'aiuto' }, t(modoTogli ? 'tocco.togliColoriAiuto' : !miei.length ? 'colori.tavolozzaVuota'
+        : V.tocco && V.tocco.attivo() ? 'tocco.tavolozzaAiuto' : 'colori.tavolozzaAiuto')));
+    if (miei.length || modoTogli) {
+      parti.push(h('button', {
+        type: 'button', class: 'btn btn-allineato solo-tocco', 'aria-pressed': String(modoTogli),
+        onclick: () => { modoTogli = !modoTogli; riempi(input); },
+      }, t(modoTogli ? 'tocco.togliColoriFatto' : 'tocco.togliColori')));
+    }
     const usati = recenti();
     if (usati.length) {
       parti.push(
@@ -16350,6 +18012,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     return parti;
   }
 
+  let modoTogli = false;
   function riempi(input) {
     if (riquadro) riquadro.replaceChildren(...costruisci(input));
   }
@@ -16357,6 +18020,7 @@ Vignetta.dati.guida = /* @guida-inizio */ {
   function apri(input, pulsante) {
     if (campoAperto === input) { chiudi(); return; }
     chiudi();
+    modoTogli = false;
     const { h } = V.ui;
     campoAperto = input;
     riquadro = h('div', { class: 'riquadro-colori', role: 'dialog', 'aria-label': t('colori.titolo') });
@@ -16443,11 +18107,15 @@ Vignetta.dati.guida = /* @guida-inizio */ {
     V.interfaccia.init();
     V.libreria.init();
     V.catalogo.init();
+    V.semplice.init();
+    V.tocco.init(); // dopo catalogo e libreria, che preparano le sezioni dove va la riga «dove aggiungo»
     V.modificaTesto.init();
     V.tavola.init();
     V.progettiUi.init();
     await V.cartella.init();
     await V.sicurezza.init();
+    V.statoLavoro.init();
+    V.copie.init(); // chiede al browser di non cancellare i dati; avvisa solo se non è possibile
     V.fasciaPagine.init();
     V.schermataIniziale.init();
     V.logo.init(); // dopo la schermata iniziale, che ha anche lei il marchio
